@@ -4,6 +4,8 @@
 #define true 1
 #define false 0
 
+#define rutaConfig "/etc/samba/gruposValidosEscritura.txt"
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -34,7 +36,7 @@
 long int *obtenerGruposValidos(){
 	//Hardcodeo la ruta
 	
-	FILE* archivo = fopen("/etc/samba/gruposValidosEscritura.txt", "r");
+	FILE* archivo = fopen(rutaConfig, "r");
 	int  indice = 1;
 	long int gid=0L;
 	long int (*gruposValidos) = malloc(sizeof (long int) * MAXGRUPOS); //Tambien hardcodeada
