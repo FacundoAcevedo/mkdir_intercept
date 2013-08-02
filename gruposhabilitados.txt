@@ -1,0 +1,6 @@
+#soy un comentario
+/* que casualidad, yo tambien soy un comentario */
+
+habilitadosCarpetas = {
+     gruposHabilitados = [1000, 2000, 3000]; // El grupo 0 siempre esta habilitado
+};
