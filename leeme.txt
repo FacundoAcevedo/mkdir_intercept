@@ -1,0 +1,7 @@
+para compilar:
+gcc -fPIC  -ldl -shared -o wrapper.so wrapper.c
+
+para ejecutar:
+LD_PRELOAD=/home/facevedo/servidores/csjn25/wrapper/wrapper.so /bin/mkdir root
+
+para mantener siempre hay que exportarlo
