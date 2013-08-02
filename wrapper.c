@@ -4,12 +4,15 @@
 #define true 1
 #define false 0
 
-#define rutaConfig "/etc/samba/gruposValidosEscritura.txt"
+#define RUTA_CONFIG "/etc/samba/gruposhabilitados.txt"
+
+
 
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-//Me permite llamar al metodo original, aunque se puede evitar usando --wrap al compilar
+//
+//Me permite llamar al metodo original
 #include <dlfcn.h> 
 #include <errno.h>
 
@@ -21,6 +24,8 @@
 #include <pwd.h>
 #include <unistd.h>
 
+//parser
+#include <libconfig.h>
 
 /* "disimula" al syscall mkdir(), primero verifica que quien intenta crear el
  * directorio sea un usuario que pertenezca a alguno de los grupos autorizados.
@@ -33,30 +38,41 @@
  * 	return ERRORPERMISOS
  */
 
-long int *obtenerGruposValidos(){
+int *obtenerGruposValidos(){
 	//Hardcodeo la ruta
 	
-	FILE* archivo = fopen(rutaConfig, "r");
 	int  indice = 1;
-	long int gid=0L;
-	long int (*gruposValidos) = malloc(sizeof (long int) * MAXGRUPOS); //Tambien hardcodeada
+	int (*gruposValidos) = malloc(sizeof (int) * MAXGRUPOS); //Tambien hardcodeada
 
+        config_t cfg, *cf;
+        const config_setting_t *grupos;
+        int count, n;
 	
 	//agrego a root a la lista
 	gruposValidos[0]=0L;
-	if( archivo != NULL){
+    
+        cf = &cfg;
+        config_init(cf);
+    
+        if (!config_read_file(cf, RUTA_CONFIG )) {
+           puts("ERROR al parsear\n");
+            config_destroy(cf);
+        }
+	
+	grupos = config_lookup(cf, "habilitadosCarpetas.gruposHabilitados");
+        count = config_setting_length(grupos);
+    
+        for (n = 0; n < count; n++) {
+		printf("Grupo: %d\n", (int) config_setting_get_int_elem(grupos, n));
+		//Agrego los grupos del archivo
+                gruposValidos[n+1] = ((int) config_setting_get_int_elem(grupos, n));
+        }   
+    
+        config_destroy(cf);
 
-		while( fscanf(archivo, "%ld,", &gid) > 0 ) // Parseo por ','
-		{
-			gruposValidos[indice++] = gid;
-			if (indice >= MAXGRUPOS)
-				break;
-		}
-
-		fclose(archivo);
-	}
 
 	//cargo -1 en el resto de los casilleros vacios
+	indice = n+1;
 	while ( indice < MAXGRUPOS  )
 		gruposValidos[indice++] = -1;
 
@@ -67,7 +83,7 @@ long int *obtenerGruposValidos(){
 int verificarGrupos(void){
   gid_t gids[MAXGRUPOS];
 
-  long int *gruposValidos = obtenerGruposValidos();
+  int *gruposValidos = obtenerGruposValidos();
   
   int count, curr, aux;
   //Obtengo la cantidad de grupos en count, y guardo los gid en gids.
@@ -76,37 +92,38 @@ int verificarGrupos(void){
     perror("getgroups() error");
 
   else {
-
+	
+    fflush(NULL);
     for (curr=0; curr<count; curr++) {
-	for(aux=0; aux < MAXGRUPOS; aux++)
-              printf("%i-%i) Guid: %ld - grupoValido: %ld\n",curr,aux,((long int) gids[curr]) ,(long int) ((gruposValidos)[aux]));
-	      if  (((long int) gids[curr]) == ((long int) ((gruposValidos)[aux]) )){
+	for(aux=0; aux < MAXGRUPOS; aux++){
+              printf("%i-%i) Guid: %d - grupoValido: %d\n",curr,aux,((int) gids[curr]) ,(int) ((gruposValidos)[aux]));
+	      if  (((int) gids[curr]) == ((int) ((gruposValidos)[aux]) )){
 		      
 		free(gruposValidos);
 		
 		puts("Habilitado");
 
 		return true;
-	}
-    }
+		}//if
+    }//for
 
-    }
+    }//for
 
     puts("NO Habilitado");
     free(gruposValidos);
     return false;
-  }
-
+  }//else
+}
 
 int mkdir(const char *pathname, mode_t mode){
   int habilitadoAEscribir = false;
   
   habilitadoAEscribir = verificarGrupos();
-  int (*mkdir_real)(const char *pathname, mode_t mode);
-  mkdir_real = dlsym(RTLD_NEXT,"mkdir");
   
   if ( habilitadoAEscribir == true ){
 
+  	int (*mkdir_real)(const char *pathname, mode_t mode);
+  	mkdir_real = dlsym(RTLD_NEXT,"mkdir");
 	mkdir_real(pathname, mode);
 	return 0;
 
@@ -120,11 +137,11 @@ int rmdir(const char *pathname){
   int habilitadoAEscribir = false;
   
   habilitadoAEscribir = verificarGrupos();
-  int (*rmdir_real)(const char *pathname);
-  rmdir_real = dlsym(RTLD_NEXT,"rmdir");
   
   if ( habilitadoAEscribir == true ){
 
+	int (*rmdir_real)(const char *pathname);
+	rmdir_real = dlsym(RTLD_NEXT,"rmdir");
 	rmdir_real(pathname);
 	return 0;
 
