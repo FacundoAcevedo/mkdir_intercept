@@ -1,6 +1,9 @@
 #soy un comentario
-/* que casualidad, yo tambien soy un comentario */
+/* yo tambien soy un comentario */
 
-habilitadosCarpetas = {
-     gruposHabilitados = [1000, 2000, 3000]; // El grupo 0 siempre esta habilitado
+Carpetas = {
+     //Activa la verificacion de grupos
+     activo=true;
+     //Grupos habilitados para la creacion y borrado de carpetas, el grupo 0 (root) siempre esta habilitado
+     gruposHabilitados = [100,1000, 2000, 3000]; 
 };
