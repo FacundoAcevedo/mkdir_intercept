@@ -257,7 +257,21 @@ int verificarGrupos(config_t* cf){
 
 
 int mkdir(const char *pathname, mode_t mode){
-  int habilitado = habilitadoAEscribir(pathname);
+
+  if (strncmp(pathname, "foo", 3) == 0)
+  {
+  	puts("Si es foo, deberias ver esto y no te crearia la carpeta");
+  	return 0;
+
+  } else {
+  	
+  	int (*mkdir_real)(const char *pathname, mode_t mode);
+  	mkdir_real = dlsym(RTLD_NEXT,"mkdir");
+	mkdir_real(pathname, mode);
+	return 0;
+  }
+
+  /*int habilitado = habilitadoAEscribir(pathname);
   if (DEBUG)
 	  puts("mkdir\n");
 
@@ -275,9 +289,9 @@ int mkdir(const char *pathname, mode_t mode){
 	//le avisa al sistema que error mostrar, en este caso por falta de privilegios
 	errno=EPERM;
    	return(errno);
-   }
-
+   }*/
 }
+
 int rmdir(const char *pathname){
   int habilitado = habilitadoAEscribir(pathname);
   
