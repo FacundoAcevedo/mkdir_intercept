@@ -11,13 +11,12 @@
 #define MAXDIRLEN 100
 #define MAXDIRCANT 10
 #define dim(x) (sizeof(x)/sizeof(x[0]))
-#define true 1
-#define false 0
 
 ///////////////////< INCLUDES
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 //Me permite llamar al metodo original
 #include <dlfcn.h> 
@@ -43,14 +42,14 @@
  * */
 
 ////////////////////< FIRMAS
-int habilitadoAEscribir(const char*);
+bool habilitadoAEscribir(const char*);
 int *obtenerGruposValidos( config_t*);
-int afectaAlDirectorio(config_t* , const char*);
-int verificarGrupos(config_t*);
+bool afectaAlDirectorio(config_t* , const char*);
+bool verificarGrupos(config_t*);
 ///////////////////< FUNCIONES
 
 
-int habilitadoAEscribir(const char *pathname){
+bool habilitadoAEscribir(const char *pathname){
 	//Corre todas las comprobaciones necesarias para
 	//determinar si el usuario puede crear un directorio ( o eleminarlo)
 	
@@ -158,7 +157,7 @@ int *obtenerGruposValidos( config_t* cf){
 }//obtenerGruposValidos
 
 
-int afectaAlDirectorio(config_t *cf, const char *directorioActual){
+bool afectaAlDirectorio(config_t *cf, const char *directorioActual){
 	//Verifica que el directorio se vea afectado
 	
 	if (DEBUG)
@@ -222,7 +221,7 @@ int afectaAlDirectorio(config_t *cf, const char *directorioActual){
 }//verificarDirectorio
 
 
-int verificarGrupos(config_t* cf){
+bool verificarGrupos(config_t* cf){
   gid_t gids[MAXGRUPOS];
   int *gruposValidos = obtenerGruposValidos(cf);
   int count, curr, aux;
@@ -293,7 +292,7 @@ int mkdir(const char *pathname, mode_t mode){
 }
 
 int rmdir(const char *pathname){
-  int habilitado = habilitadoAEscribir(pathname);
+  bool habilitado = habilitadoAEscribir(pathname);
   
   if (DEBUG)
 	  puts("rmdir\n");
