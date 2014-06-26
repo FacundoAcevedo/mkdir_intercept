@@ -36,9 +36,13 @@
 //manejo de strings
 #include <string.h>
 
+#include <time.h>
+
+
 /* "disimula" al syscall mkdir(), primero verifica que quien intenta crear el
  * directorio sea un usuario que pertenezca a alguno de los grupos autorizados.
- * si pertenece, le permite crear el directorio, de lo contrario dara error de permisos
+ * si pertenece, le permite crear el directorio, de lo contrario dara error de
+ * permisos
  * */
 
 ////////////////////< FIRMAS
@@ -46,6 +50,7 @@ bool habilitadoAEscribir(const char*);
 int *obtenerGruposValidos( config_t*);
 bool afectaAlDirectorio(config_t* , const char*);
 bool verificarGrupos(config_t*);
+bool logger(char*);
 ///////////////////< FUNCIONES
 
 
@@ -53,8 +58,10 @@ bool habilitadoAEscribir(const char *pathname){
 	//Corre todas las comprobaciones necesarias para
 	//determinar si el usuario puede crear un directorio ( o eleminarlo)
 	
-	if (DEBUG)
+	if (DEBUG){
 		puts("-HabilitadoAEscribir()\n");
+        logger("-HabilitadoAEscribir()");
+    }
 
 
 	int activo = 0;
@@ -67,14 +74,20 @@ bool habilitadoAEscribir(const char *pathname){
 	//Intento leer el archivo
         if (!config_read_file(cf, RUTA_CONFIG )) {
            puts("ERROR al parsear la configuracion\n");
+           if (DEBUG)
+               logger("ERROR al parsear la configuracion");
            config_destroy(cf);
            return false;
         }
 
 	//Verifico que en la configuracion se quiere verificar los grupos
 	if(config_lookup_bool(cf, "Carpetas.activo", &activo)){
-		if (DEBUG)
+		if (DEBUG){
 			printf("-Activo:%d\n",activo);
+            char msg[100];
+            sprintf(msg, "-Activo: %d\n",activo);
+            logger(msg);
+        }
 		if( activo == 0 ){
 			   config_destroy(cf);
 			   return true;
@@ -260,6 +273,7 @@ int mkdir(const char *pathname, mode_t mode){
   if (strncmp(pathname, "foo", 3) == 0)
   {
   	puts("Si es foo, deberias ver esto y no te crearia la carpeta");
+    logger("Prohibido crear foo");  
   	return 0;
 
   } else {
@@ -309,4 +323,22 @@ int rmdir(const char *pathname){
 	errno=EPERM;
    	return(errno);
        }
+}
+
+//Funcion auxiliar de loggeo
+bool logger(char* inBuf) // inBuf = message to log
+{
+    time_t myTime = time(NULL);
+    
+    FILE* fp = fopen("/tmp/mkdir.log", "a"); //File to open. "a" for append, or write to end of file
+    if(!fp) return false;
+    
+    //char* buf = (char*) malloc(sizeof(char)); //get space for the buffer
+    char* buf = (char*) calloc(strlen(inBuf) + sizeof(myTime), sizeof(char)); //get space for the buffer
+    sprintf(buf, "%s - %s \n",ctime(&myTime),inBuf); //format 'inBuf' 
+    fprintf(fp, buf); //Write to the file
+    
+    fclose(fp);
+    //free(buf++);
+    return true;
 }
