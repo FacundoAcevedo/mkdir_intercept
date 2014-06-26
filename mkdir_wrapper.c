@@ -329,13 +329,20 @@ int rmdir(const char *pathname){
 bool logger(char* inBuf) // inBuf = message to log
 {
     time_t myTime = time(NULL);
+    char* fecha = ctime(&myTime);
+
+    char* caracter = strrchr(fecha, '\n');
+    if (caracter) *caracter='\0';
+
     
     FILE* fp = fopen("/tmp/mkdir.log", "a"); //File to open. "a" for append, or write to end of file
     if(!fp) return false;
     
     //char* buf = (char*) malloc(sizeof(char)); //get space for the buffer
-    char* buf = (char*) calloc(strlen(inBuf) + sizeof(myTime), sizeof(char)); //get space for the buffer
-    sprintf(buf, "%s - %s \n",ctime(&myTime),inBuf); //format 'inBuf' 
+    //char* buf = (char*) calloc(strlen(inBuf) + sizeof(myTime), sizeof(char)); //get space for the buffer
+    char* buf = (char*) malloc((strlen(inBuf) + strlen(fecha)) * sizeof(char)); //get space for the buffer
+    sprintf(buf, "%s - %s \n", fecha, inBuf); //format 'inBuf' 
+    //sprintf(buf, "%s - %s \n",ctime(&myTime),inBuf); //format 'inBuf' 
     fprintf(fp, buf); //Write to the file
     
     fclose(fp);
