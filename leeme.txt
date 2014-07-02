@@ -2,6 +2,6 @@ para compilar:
 gcc -fPIC  -ldl -shared -o wrapper.so wrapper.c
 
 para ejecutar:
-LD_PRELOAD=/tmp/wrapper.so /bin/mkdir root
+LD_PRELOAD=$PWD/mkdir_wrapper.so /bin/mkdir foo
 
 para mantener siempre hay que exportarlo

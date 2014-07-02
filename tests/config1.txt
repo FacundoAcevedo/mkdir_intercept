@@ -1,0 +1,54 @@
+//Inicio configuracion
+
+rutasAfectadas = ( "/tmp/test/" "/tmp/test/A/" "/tmp/test/A/B/" "/tmp/A/D/" )
+
+/tmp/test/ = {
+     //Activa la verificacion de grupos
+     activo=true;
+     recursivo = false;
+    
+     //Grupos deshabilitados, root (0) estara habilitado por defecto
+     grupos_deshabilitados= [100,1000, 2000, 3000]; 
+
+     //Usuarios habilitados id
+     usuarios_deshabilitados= [1000];
+};
+
+/tmp/test/A/ = {
+     //Activa la verificacion de grupos
+     activo=true;
+     recursivo = false;
+    
+     //Grupos deshabilitados, root (0) estara habilitado por defecto
+     grupos_deshabilitados= [100,1000, 2000, 3000]; 
+
+     //Usuarios habilitados id
+     usuarios_deshabilitados= [1000];
+};
+
+
+//En esta opcion esta implicita que /tmp/test/A/B/C es afectada
+/tmp/test/A/B/ = {
+     //Activa la verificacion de grupos
+     activo=true;
+     recursivo = true;
+    
+     //Grupos deshabilitados, root (0) estara habilitado por defecto
+     grupos_deshabilitados= [100,1000, 2000, 3000]; 
+
+     //Usuarios habilitados id
+     usuarios_deshabilitados= [1000];
+};
+
+/tmp/test/A/D/ = {
+     //Activa la verificacion de grupos
+     activo=true;
+     recursivo = true;
+    
+     //Grupos deshabilitados, root (0) estara habilitado por defecto
+     grupos_deshabilitados= [100,1000, 2000, 3000]; 
+
+     //Usuarios habilitados id
+     usuarios_deshabilitados= [1000];
+};
+//Fin configuracion

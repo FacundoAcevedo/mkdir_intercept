@@ -39,7 +39,7 @@
 
 #include <time.h>
 
-#include "logger.h"
+#include "../logger/logger.h"
 
 /* "disimula" al syscall mkdir(), primero verifica que quien intenta crear el
  * directorio sea un usuario que pertenezca a alguno de los grupos autorizados.
@@ -51,7 +51,7 @@
 //Verifica si el usuario esta habilitado a escribir
 bool habilitadoAEscribir(const char*);
 int *obtenerGruposValidos( config_t*);
-bool afectaAlDirectorio(config_t* , const char*);
+char* afectaAlDirectorio(config_t* , const char*);
 bool verificarGrupos(config_t*);
 ///////////////////< FUNCIONES
 
@@ -79,6 +79,8 @@ bool verificar_habilitacion(const char *pathname){
     }
 
     //Obtengo los directorios afectados
+    //TODO: ESTA HARDCODEADO PARA COMPILAR
+    return false;
 
 
 }
@@ -208,25 +210,25 @@ int *obtenerGruposValidos( config_t* cf){
 //devolvera /a/b
 //EJ: dir_a_crear: /a/d
 //devolvera: NULL
-char* directorioAfectado(config_t *cf, const char *directorio_verificar)
+char* directorioAfectado(config_t *cf,  char *directorio_verificar)
 {
 	const config_setting_t *directorios_afectados;
-	int cantidad=0, afectado=true;
+	//bool afectado=true;
     char* directorio_posible = NULL;
 	
     //Obtengo la lista de directorios afectados
 	directorios_afectados = config_lookup(cf, "rutasAfectadas");
     //Cantidad de directorios afectados
-	cantidad_directorios = config_setting_length(directoriosAfectados);
+	int cantidad_directorios = config_setting_length(directorios_afectados);
 
     //Recorro la lista de directorios afectados
     for (int i = 0; i < cantidad_directorios; i++)
     {
         //Obtengo la ruta del directorio afectado numero i
-        char* directorioAfectado = ((char*) config_setting_get_string_elem(directorios_afectados, i));
+        char* directorio_afectado = ((char*) config_setting_get_string_elem(directorios_afectados, i));
         
         //Comparo los largos
-		int comparacion = strcmp(directorio_verificar, directorio_afectado);
+		//int comparacion = strcmp(directorio_verificar, directorio_afectado);
 
         //verificar en afectado
 		char* posicionSubString = strstr( directorio_afectado, directorio_verificar);
@@ -243,12 +245,11 @@ char* directorioAfectado(config_t *cf, const char *directorio_verificar)
                     directorio_posible = directorio_afectado;
                 }
                 //else -> mantendra la ruta mas cercana
-            }else{
+            }else
                 directorio_posible = directorio_afectado;
 
 
-        }
-        else if (posicionSubString == NULL && posicionSubStringInverso != NULL){
+        } else  if(posicionSubString == NULL && posicionSubStringInverso != NULL){
             //dir afectado es un subdirectorio del directorio a verificar 
             //entonces no hago nada
             continue;
@@ -266,70 +267,6 @@ char* directorioAfectado(config_t *cf, const char *directorio_verificar)
     }//for
     return directorio_posible;
 }
-
-
-
-//bool afectaAlDirectorio(config_t *cf, const char *directorioActual){
-//	//Verifica que el directorio se vea afectado
-//
-//	const config_setting_t *directoriosAfectados;
-//	int cantidad=0, afectado=true;
-//	
-//	directoriosAfectados = config_lookup(cf, "rutasAfectadas");
-//	cantidad = config_setting_length(directoriosAfectados);
-//
-//				if (DEBUG){
-//					printf("--Directorio actual: %s \n",directorioActual);
-//                    LOG_PRINT("--Directorio actual: %s ",directorioActual);
-//                }
-//
-//	for (int n = 0; n < cantidad; n++) {
-//        //Obtengo el elemento n de la lista de directorios afectados
-//		char* directorioAfectado = ((char*) config_setting_get_string_elem(directoriosAfectados,n));
-//
-//		//Comparo el directorio actual con los directorios afectados)
-//        //strcmp me devuelve la posicion donde comienza la coincidencia
-//		int comparacion = strcmp(directorioActual, directorioAfectado);
-//
-//				if (DEBUG){
-//					printf("--Comparacion: %i \n",comparacion);
-//                    LOG_PRINT("--Comparacion: %i",comparacion);  
-//                }
-//
-//		//Obtengo la posicion de la subtring
-//		char* posicionSubString = strstr(directorioActual, directorioAfectado);
-//		char* posicionSubStringInverso = strstr( directorioAfectado, directorioActual);
-//
-//		if(posicionSubString == NULL && posicionSubStringInverso == NULL){
-//
-//				if (DEBUG){
-//					printf("--No son substrings\n");
-//                    LOG_PRINT("--No son substrings");
-//                }
-//
-//
-//			afectado = false; //El directorio actual no esta debajo de nungun directorio prohibido
-//		}//if
-//
-//		else{
-//            
-//			//la ruta actual es substring de alguna ruta afectada
-//			if( comparacion >=0){ //La ruta actual es mas larga ( o igual)  que la ruta afectada
-//				return  true;
-//				}
-//
-//			else //La ruta actual es mas corta que sla ruta afectada
-//				afectado = false;
-//
-//		}//else
-//	}//for
-//	return afectado;
-//
-//	
-//
-//
-//
-//}//verificarDirectorio
 
 
 bool verificarGrupos(config_t* cf){

@@ -1,0 +1,38 @@
+/*Configuracion ejemplo: 
+rutasAfectadas = ("/ruta/afectada0" "/ruta/afectada0/subNivel" "/ruta/afectada2")
+
+/ruta/afectada0 = {
+     //Activa la verificacion de grupos
+     activo=true;
+
+     //Afecta subdirectorios
+     recursivo = true
+    
+     //Grupos habilitados para la creacion y borrado de carpetas, el grupo 0 (root) siempre esta habilitado
+     gruposHabilitados = [100,1000, 2000, 3000]; 
+    
+};
+*/
+
+
+//Inicio configuracion
+
+
+rutasAfectadas = ("/tmp/afectada0" "/tmp/afectada0/subNivel" "/tmp/afectada2")
+
+/tmp/afectada0 = {
+     //Activa la verificacion de grupos
+     activo=true;
+     recursivo = true;
+    
+     //Grupos deshabilitados, root (0) estara habilitado por defecto
+     grupos_deshabilitados= [100,1000, 2000, 3000]; 
+
+     //Usuarios habilitados id
+     usuarios_deshabilitados= [1000];
+};
+
+
+
+
+//Fin configuracion
