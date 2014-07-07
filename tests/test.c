@@ -8,8 +8,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <mkdir_wrapper.h>
+#include "../src/core/validaciones.h"
 #include <CUnit/CUnit.h>    //ASSERT macros for use in test cases, and includes other framework headers.
+#include <CUnit/Basic.h>
 
 //Creacion de directorios
 #include <sys/types.h>
@@ -44,32 +45,79 @@ int init_afectaAlDirectorio(void)
     config_init(cf);
     
 	//Intento leer el archivo
-    if (!config_read_file(cf, "config1.txt" )) {
-       puts("ERROR al parsear la configuracion\n");
+    if (!config_read_file(cf, "tests/config1.txt" )) {
+       int linea =  config_error_line(cf);
+       printf("ERROR al parsear la configuracion, linea: %d\n", linea);
        config_destroy(cf);
        return 1;
     }
+    return 0;
 
-    return cf;
 
 }
 
 int clean_afectaAlDirectorio(void)
 {
+    config_destroy(cf);
     return 0;
 }
 
 void testDirectorioFueraDeRutaAfectada(void)
 {
-    char *DirectorioFueraDeRuta = "/var/www/";
+    char* directorioFueraDeRuta = "/var/www/";
 
-    CU_ASSERT_PTR_NULL( afectaAlDirectorio(cf, *DirectorioFueraDeRuta));
+    const char *salida = afectaAlDirectorio(cf, directorioFueraDeRuta);
+    CU_ASSERT_PTR_NULL( salida);
+    if (salida)
+        free((char *) salida);
+}
+
+void testDirectorioFueraDeRutaAfectadaLarga(void)
+{
+    int largo = 1000;
+    int i = 0;
+    char* directorioFueraDeRuta = calloc(largo, sizeof(char));
+
+    for (i = 0; i < (largo-1); i++)
+        strcat(directorioFueraDeRuta, "a");
+        
+    const char *salida = afectaAlDirectorio(cf, directorioFueraDeRuta);
+    CU_ASSERT_PTR_NULL(salida);// salida);
+    free(directorioFueraDeRuta);
+    if (salida)
+        free((char *) salida);
+}
+
+void testDirectorioNulo(void)
+{
+
+    const char *salida = afectaAlDirectorio(cf, NULL);
+    CU_ASSERT_PTR_NULL( salida);
+    if (salida)
+        free((char *) salida);
 }
 
 
+void testDirectorioRutaValida(void)
+{
+    char* directorio0 = "/tmp/test/";
+    char* directorio1 = "/tmp/test/A/";
+
+    const char *salida0 = afectaAlDirectorio(cf, directorio0);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(salida0);
+    CU_ASSERT_STRING_EQUAL(salida0, directorio0);
+    if (salida0)
+        free((char *) salida0);
+
+    const char *salida1 = afectaAlDirectorio(cf, directorio1);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(salida1);
+    CU_ASSERT_STRING_EQUAL(salida1, directorio1);
+    if (salida1)
+        free((char *) salida1);
+}
 
 
-int main()
+int main(void)
 {
    CU_pSuite pSuite = NULL;
 
@@ -85,7 +133,11 @@ int main()
    }
 
    /* add the tests to the suite */
-   if ((NULL == CU_add_test(pSuite, "Test directorio fuera de ruta", testDirectorioFueraDeRutaAfectada)) 
+
+   if ((NULL == CU_add_test(pSuite, "Test directorio fuera de ruta", testDirectorioFueraDeRutaAfectada))||
+           (NULL == CU_add_test(pSuite, "Test directorio largo fuera de ruta", testDirectorioFueraDeRutaAfectadaLarga)) ||
+           (NULL == CU_add_test(pSuite, "Test directorio Nulo", testDirectorioNulo))||
+           (NULL == CU_add_test(pSuite, "Test directorio valido", testDirectorioRutaValida)))
    {
       CU_cleanup_registry();
       return CU_get_error();

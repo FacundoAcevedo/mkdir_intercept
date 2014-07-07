@@ -1,8 +1,13 @@
 //Inicio configuracion
 
-rutasAfectadas = ( "/tmp/test/" "/tmp/test/A/" "/tmp/test/A/B/" "/tmp/A/D/" )
+cantidad_rutas = 4;
+ruta0 : "/tmp/test/";
+ruta1 : "/tmp/test/A/";
+ruta2 : "/tmp/test/A/B/";
+ruta3 :"/tmp/A/D/";
+/*....*/
 
-/tmp/test/ = {
+confRuta0 : {
      //Activa la verificacion de grupos
      activo=true;
      recursivo = false;
@@ -14,7 +19,7 @@ rutasAfectadas = ( "/tmp/test/" "/tmp/test/A/" "/tmp/test/A/B/" "/tmp/A/D/" )
      usuarios_deshabilitados= [1000];
 };
 
-/tmp/test/A/ = {
+confRuta1 = {
      //Activa la verificacion de grupos
      activo=true;
      recursivo = false;
@@ -28,7 +33,7 @@ rutasAfectadas = ( "/tmp/test/" "/tmp/test/A/" "/tmp/test/A/B/" "/tmp/A/D/" )
 
 
 //En esta opcion esta implicita que /tmp/test/A/B/C es afectada
-/tmp/test/A/B/ = {
+confRuta2 = {
      //Activa la verificacion de grupos
      activo=true;
      recursivo = true;
@@ -40,7 +45,7 @@ rutasAfectadas = ( "/tmp/test/" "/tmp/test/A/" "/tmp/test/A/B/" "/tmp/A/D/" )
      usuarios_deshabilitados= [1000];
 };
 
-/tmp/test/A/D/ = {
+confRuta3 = {
      //Activa la verificacion de grupos
      activo=true;
      recursivo = true;
