@@ -32,12 +32,30 @@
 
 int mkdir(const char *pathname, mode_t mode){
 
+  LOG_PRINT("mkdir %s", pathname);
  // habilitadoAEscribir(pathname);
-  //if (strncmp(pathname, "/tmp/foo",8) == 0)
-  if(strstr(pathname, "foo") != NULL)
+  const char* ruta = "/home/facu/scripts/C/mkdir_intercept/tests/config1.txt";
+  
+  //Inicializo el parser de configuracion
+  config_t cfg, *cf;
+  cf = &cfg;
+  config_init(cf);
+  
+  //Intento leer el archivo
+  if (!config_read_file(cf, ruta )) {
+     int linea =  config_error_line(cf);
+     printf("ERROR al parsear la configuracion, linea: %d\n", linea);
+     config_destroy(cf);
+     return 1;
+  }
+
+  const char* salida = afectaAlDirectorio(cf,pathname);
+  printf("Salida: %s", salida);
+  
+  if( afectaAlDirectorio(cf,pathname) != NULL )
   {
-  	puts("Si es foo, deberias ver esto y no te crearia la carpeta");
-    LOG_PRINT("No creo foo");
+  	puts("Carpeta afectada por la configuracion");
+    LOG_PRINT("Carpeta afectada por la configuracion");
 	errno=EPERM;
    	return(errno);
 
