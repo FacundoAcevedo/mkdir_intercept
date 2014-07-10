@@ -1,10 +1,10 @@
 //Inicio configuracion
 
 cantidad_rutas = 4;
-ruta0 : "/tmp/test/";
-ruta1 : "/tmp/test/A/";
-ruta2 : "/tmp/test/A/B/";
-ruta3 :"/tmp/A/D/";
+ruta0: "/tmp/test/";
+ruta1: "/tmp/test/A/";
+ruta2: "/tmp/test/A/B/";
+ruta3:"/tmp/A/D/";
 /*....*/
 
 confRuta0 : {
