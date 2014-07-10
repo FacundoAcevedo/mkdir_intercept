@@ -97,7 +97,24 @@ void testDirectorioNulo(void)
         free((char *) salida);
 }
 
+void testConfiguracionNula(void)
+{
 
+    char* ruta = "/tmp/";
+    const char *salida = afectaAlDirectorio(NULL, ruta);
+    CU_ASSERT_PTR_NULL( salida);
+    if (salida)
+        free((char *) salida);
+}
+
+void testDirectorioYConfiguracionNula(void)
+{
+
+    const char *salida = afectaAlDirectorio(NULL, NULL);
+    CU_ASSERT_PTR_NULL( salida);
+    if (salida)
+        free((char *) salida);
+}
 void testDirectorioRutaValida(void)
 {
     char* directorio0 = "/tmp/test/";
@@ -115,6 +132,66 @@ void testDirectorioRutaValida(void)
     if (salida1)
         free((char *) salida1);
 }
+
+void testDirectorioRutaValidaConBarra(void)
+{
+    char* directorio0 = "/tmp/test/";
+    char* directorio1 = "/tmp/test";
+
+    const char *salida0 = afectaAlDirectorio(cf, directorio0);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(salida0);
+    CU_ASSERT_STRING_EQUAL(salida0, directorio0);
+
+    const char *salida1 = afectaAlDirectorio(cf, directorio1);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(salida1);
+    CU_ASSERT_STRING_EQUAL(salida1, directorio0);
+    
+    CU_ASSERT_STRING_EQUAL(salida0, salida1);
+
+    if (salida1)
+        free((char *) salida1);
+    if (salida0)
+        free((char *) salida0);
+}
+
+void testDirectorioRutaVacia(void)
+{
+    char* directorioRutaVacia = "";
+
+    const char *salida = afectaAlDirectorio(cf, directorioRutaVacia);
+    CU_ASSERT_PTR_NULL( salida);
+    if (salida)
+        free((char *) salida);
+}
+
+
+//rutasTerminaEnBarra
+void testRutaTerminaEnBarraValida(void)
+{
+
+    const char* rutaA ="/algo/";
+    const char* rutaB ="/algo";
+    const char *salida = rutasTerminaEnBarra(rutaA, rutaB);
+    CU_ASSERT_STRING_EQUAL(salida, rutaA);
+}
+
+void testRutaTerminaEnBarraValidaInvertida(void)
+{
+
+    const char* rutaA ="/algo/";
+    const char* rutaB ="/algo";
+    const char *salida = rutasTerminaEnBarra(rutaB, rutaA);
+    CU_ASSERT_STRING_EQUAL(salida, rutaA);
+}
+
+void testRutaTerminaEnBarraInvalida(void)
+{
+    const char* rutaA ="/algo/";
+    const char* rutaB ="/algomas";
+    const char *salida = rutasTerminaEnBarra(rutaA, rutaB);
+    CU_ASSERT_PTR_NULL(salida);
+}
+
 
 
 int main(void)
@@ -137,7 +214,15 @@ int main(void)
    if ((NULL == CU_add_test(pSuite, "Test directorio fuera de ruta", testDirectorioFueraDeRutaAfectada))||
            (NULL == CU_add_test(pSuite, "Test directorio largo fuera de ruta", testDirectorioFueraDeRutaAfectadaLarga)) ||
            (NULL == CU_add_test(pSuite, "Test directorio Nulo", testDirectorioNulo))||
-           (NULL == CU_add_test(pSuite, "Test directorio valido", testDirectorioRutaValida)))
+           (NULL == CU_add_test(pSuite, "Test directorio valido", testDirectorioRutaValida)) ||
+           (NULL == CU_add_test(pSuite, "Test directorio valido con barra", testDirectorioRutaValidaConBarra)) ||
+           (NULL == CU_add_test(pSuite, "Test directorio ruta vacia", testDirectorioRutaVacia)) ||
+           (NULL == CU_add_test(pSuite, "Test configuracion nula", testConfiguracionNula )) ||
+           (NULL == CU_add_test(pSuite, "Test directorio y configuracion nulas ", testDirectorioYConfiguracionNula )) ||
+
+           (NULL == CU_add_test(pSuite, "Test ruta termina en barra valida", testRutaTerminaEnBarraValida)) ||
+           (NULL == CU_add_test(pSuite, "Test ruta termina en barra valida Invertida", testRutaTerminaEnBarraValidaInvertida)) ||
+           (NULL == CU_add_test(pSuite, "Test ruta termina en barra invalida", testRutaTerminaEnBarraInvalida)))
    {
       CU_cleanup_registry();
       return CU_get_error();
