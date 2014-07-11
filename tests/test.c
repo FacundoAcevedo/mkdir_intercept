@@ -66,10 +66,11 @@ void testDirectorioFueraDeRutaAfectada(void)
 {
     char* directorioFueraDeRuta = "/var/www/";
 
-    const char *salida = afectaAlDirectorio(cf, directorioFueraDeRuta);
+    Ruta_t *salida = afectaAlDirectorio(cf, directorioFueraDeRuta);
+
     CU_ASSERT_PTR_NULL( salida);
     if (salida)
-        free((char *) salida);
+        ruta_tDestruir(salida);
 }
 
 void testDirectorioFueraDeRutaAfectadaLarga(void)
@@ -81,56 +82,56 @@ void testDirectorioFueraDeRutaAfectadaLarga(void)
     for (i = 0; i < (largo-1); i++)
         strcat(directorioFueraDeRuta, "a");
         
-    const char *salida = afectaAlDirectorio(cf, directorioFueraDeRuta);
+    Ruta_t *salida = afectaAlDirectorio(cf, directorioFueraDeRuta);
     CU_ASSERT_PTR_NULL(salida);// salida);
     free(directorioFueraDeRuta);
     if (salida)
-        free((char *) salida);
+        ruta_tDestruir(salida);
 }
 
 void testDirectorioNulo(void)
 {
 
-    const char *salida = afectaAlDirectorio(cf, NULL);
+    Ruta_t *salida = afectaAlDirectorio(cf, NULL);
     CU_ASSERT_PTR_NULL( salida);
     if (salida)
-        free((char *) salida);
+        ruta_tDestruir(salida);
 }
 
 void testConfiguracionNula(void)
 {
 
     char* ruta = "/tmp/";
-    const char *salida = afectaAlDirectorio(NULL, ruta);
+    Ruta_t *salida = afectaAlDirectorio(NULL, ruta);
     CU_ASSERT_PTR_NULL( salida);
     if (salida)
-        free((char *) salida);
+        ruta_tDestruir(salida);
 }
 
 void testDirectorioYConfiguracionNula(void)
 {
 
-    const char *salida = afectaAlDirectorio(NULL, NULL);
+    Ruta_t *salida = afectaAlDirectorio(NULL, NULL);
     CU_ASSERT_PTR_NULL( salida);
     if (salida)
-        free((char *) salida);
+        ruta_tDestruir(salida);
 }
 void testDirectorioRutaValida(void)
 {
     char* directorio0 = "/tmp/test/";
     char* directorio1 = "/tmp/test/A/";
 
-    const char *salida0 = afectaAlDirectorio(cf, directorio0);
+    Ruta_t *salida0 = afectaAlDirectorio(cf, directorio0);
     CU_ASSERT_PTR_NOT_NULL_FATAL(salida0);
-    CU_ASSERT_STRING_EQUAL(salida0, directorio0);
+    CU_ASSERT_STRING_EQUAL( salida0->ruta, directorio0);
     if (salida0)
-        free((char *) salida0);
+        ruta_tDestruir(salida0);
 
-    const char *salida1 = afectaAlDirectorio(cf, directorio1);
+    Ruta_t *salida1 = afectaAlDirectorio(cf, directorio1);
     CU_ASSERT_PTR_NOT_NULL_FATAL(salida1);
-    CU_ASSERT_STRING_EQUAL(salida1, directorio1);
+    CU_ASSERT_STRING_EQUAL(salida1->ruta, directorio1);
     if (salida1)
-        free((char *) salida1);
+        ruta_tDestruir(salida0);
 }
 
 void testDirectorioRutaValidaConBarra(void)
@@ -138,30 +139,30 @@ void testDirectorioRutaValidaConBarra(void)
     char* directorio0 = "/tmp/test/";
     char* directorio1 = "/tmp/test";
 
-    const char *salida0 = afectaAlDirectorio(cf, directorio0);
+    Ruta_t *salida0 = afectaAlDirectorio(cf, directorio0);
     CU_ASSERT_PTR_NOT_NULL_FATAL(salida0);
-    CU_ASSERT_STRING_EQUAL(salida0, directorio0);
+    CU_ASSERT_STRING_EQUAL(salida0->ruta, directorio0);
 
-    const char *salida1 = afectaAlDirectorio(cf, directorio1);
+    Ruta_t *salida1 = afectaAlDirectorio(cf, directorio1);
     CU_ASSERT_PTR_NOT_NULL_FATAL(salida1);
-    CU_ASSERT_STRING_EQUAL(salida1, directorio0);
+    CU_ASSERT_STRING_EQUAL(salida1->ruta, directorio0);
     
-    CU_ASSERT_STRING_EQUAL(salida0, salida1);
+    CU_ASSERT_STRING_EQUAL(salida0->ruta, salida1->ruta);
 
     if (salida1)
-        free((char *) salida1);
+        ruta_tDestruir(salida1);
     if (salida0)
-        free((char *) salida0);
+        ruta_tDestruir(salida0);
 }
 
 void testDirectorioRutaVacia(void)
 {
     char* directorioRutaVacia = "";
 
-    const char *salida = afectaAlDirectorio(cf, directorioRutaVacia);
+    Ruta_t *salida = afectaAlDirectorio(cf, directorioRutaVacia);
     CU_ASSERT_PTR_NULL( salida);
     if (salida)
-        free((char *) salida);
+        ruta_tDestruir(salida);
 }
 
 
