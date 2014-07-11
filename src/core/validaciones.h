@@ -16,11 +16,24 @@
 #include <stdbool.h>
 #include <libconfig.h>
 
+typedef struct ruta_t {
+   char* ruta;
+   int id_ruta;
+   bool recursivo;
+   bool activo;
+   int grupos[MAXGRUPOS];
+   int usuarios[MAXUSUARIOS];
+   } Ruta_t;
+
 bool habilitadoAEscribir(const char*);
 
 int *obtenerGruposValidos( config_t*);
 
-const char* afectaAlDirectorio(config_t* , const char*);
+Ruta_t *afectaAlDirectorio(config_t* , const char*);
+
+Ruta_t* ruta_tInstanciar(void);
+
+void ruta_tDestruir(Ruta_t*);
 
 bool verificarGrupos(config_t*);
 

@@ -42,16 +42,6 @@
 
 #include "../logger/logger.h"
 
-config_t* configuracion_cargar(const char*);
-
-typedef struct ruta_t {
-   const char* ruta[MAXDIRLEN];
-   int id_ruta;
-   bool recursivo;
-   bool activo;
-   int grupos[MAXGRUPOS];
-   int usuarios[MAXUSUARIOS];
-   } Ruta_t;
 
 //Hace todas las verificaciones
 bool verificar_habilitacion(const char *pathname){
@@ -84,11 +74,11 @@ config_t* configuracion_cargar(const char *ruta)
 {
     //Cargo la config
 
-    const char* ruta_;
-    if (ruta != NULL)
-        ruta_ = ruta;
-    else
-        ruta_ = RUTA_CONFIG;
+    /*const char* ruta_;*/
+    /*if (ruta != NULL)*/
+        /*ruta_ = ruta;*/
+    /*else*/
+        /*ruta_ = RUTA_CONFIG;*/
      //Inicializo el parser de configuracion
 	config_t cfg, *cf;
     cf = &cfg;
@@ -108,77 +98,78 @@ config_t* configuracion_cargar(const char *ruta)
     return cf;
 }
 bool habilitadoAEscribir(const char *pathname){
-	//Corre todas las comprobaciones necesarias para
-	//determinar si el usuario puede crear un directorio ( o eleminarlo)
+	/*//Corre todas las comprobaciones necesarias para*/
+	/*//determinar si el usuario puede crear un directorio ( o eleminarlo)*/
 	
-	if (DEBUG){
-		puts("-HabilitadoAEscribir()\n");
-        LOG_PRINT("-HabilitadoAEscribir()");
-    }
+	/*if (DEBUG){*/
+		/*puts("-HabilitadoAEscribir()\n");*/
+        /*LOG_PRINT("-HabilitadoAEscribir()");*/
+    /*}*/
 
 
-	int activo = 0;
-	config_t cfg, *cf;
+	/*int activo = 0;*/
+	/*config_t cfg, *cf;*/
 
-        //Inicializo el parser de configuracion
-        cf = &cfg;
-        config_init(cf);
+        /*//Inicializo el parser de configuracion*/
+        /*cf = &cfg;*/
+        /*config_init(cf);*/
         
-	//Intento leer el archivo
-        if (!config_read_file(cf, RUTA_CONFIG )) {
-           puts("ERROR al parsear la configuracion\n");
-           if (DEBUG)
-               LOG_PRINT("ERROR al parsear la configuracion");
-           config_destroy(cf);
-           return false;
-        }
+	/*//Intento leer el archivo*/
+        /*if (!config_read_file(cf, RUTA_CONFIG )) {*/
+           /*puts("ERROR al parsear la configuracion\n");*/
+           /*if (DEBUG)*/
+               /*LOG_PRINT("ERROR al parsear la configuracion");*/
+           /*config_destroy(cf);*/
+           /*return false;*/
+        /*}*/
 
-	//Verifico que en la configuracion se quiere verificar los grupos
-	if(config_lookup_bool(cf, "Carpetas.activo", &activo)){
-		if (DEBUG){
-			printf("-Activo:%d\n",activo);
-            LOG_PRINT("-Activo: %d",activo);
-        }
-		if( activo == 0 ){
-			   config_destroy(cf);
-			   return true;
-		}//if
-		else{
+	/*//Verifico que en la configuracion se quiere verificar los grupos*/
+	/*if(config_lookup_bool(cf, "Carpetas.activo", &activo)){*/
+		/*if (DEBUG){*/
+			/*printf("-Activo:%d\n",activo);*/
+            /*LOG_PRINT("-Activo: %d",activo);*/
+        /*}*/
+		/*if( activo == 0 ){*/
+			   /*config_destroy(cf);*/
+			   /*return true;*/
+		/*}//if*/
+		/*else{*/
+			/*[>if(afectaAlDirectorio(cf, pathname)){<]*/
 			/*if(afectaAlDirectorio(cf, pathname)){*/
-			if(afectaAlDirectorio(cf, pathname)){
-				//El directorio es afectado por la configuracion
+				/*//El directorio es afectado por la configuracion*/
 
-				if (DEBUG){
-					printf("-AFECTA AL DIRECTORIO\n");
-                    LOG_PRINT("-AFECTA AL DIRECTORIO");
-                }
+				/*if (DEBUG){*/
+					/*printf("-AFECTA AL DIRECTORIO\n");*/
+                    /*LOG_PRINT("-AFECTA AL DIRECTORIO");*/
+                /*}*/
 
-				if ( verificarGrupos(cf)){
-        				config_destroy(cf);
-					return true;
-				}
-				config_destroy(cf);
-				return false;
+				/*if ( verificarGrupos(cf)){*/
+                        /*config_destroy(cf);*/
+					/*return true;*/
+				/*}*/
+				/*config_destroy(cf);*/
+				/*return false;*/
 					
 				
 
-				config_destroy(cf);
-			}//if
-			else{
-				if (DEBUG)
-				   printf("-NO AFECTA AL DIRECTORIO\n");
-                   LOG_PRINT("No afecta al directorio");
-				   config_destroy(cf);
-				   return true;
-			}//else
+				/*config_destroy(cf);*/
+			/*}//if*/
+			/*else{*/
+				/*if (DEBUG)*/
+				   /*printf("-NO AFECTA AL DIRECTORIO\n");*/
+                   /*LOG_PRINT("No afecta al directorio");*/
+				   /*config_destroy(cf);*/
+				   /*return true;*/
+			/*}//else*/
 
-		}//else
-	}//if
-	else{
-	//Esto es pasaria si no existe la opcion activo en la config
-	config_destroy(cf);
-	return true; 
-	}
+		/*}//else*/
+	/*}//if*/
+	/*else{*/
+	/*//Esto es pasaria si no existe la opcion activo en la config*/
+	/*config_destroy(cf);*/
+	/*return true; */
+	/*}*/
+    return false;
 
 }//habilitadoAEscribir
 
@@ -227,14 +218,36 @@ int *obtenerGruposValidos( config_t* cf){
 
 }//obtenerGruposValidos
 
+Ruta_t* ruta_tInstanciar(void)
+{
+
+    Ruta_t* datos_ruta = malloc(sizeof(Ruta_t));
+    if (datos_ruta == NULL)
+        return NULL;
+    
+    datos_ruta->ruta = calloc(MAXDIRLEN, sizeof(char));
+    if (datos_ruta->ruta == NULL){
+        free(datos_ruta);
+        return NULL;
+    }
+
+    return datos_ruta;
+}
+
+void ruta_tDestruir(Ruta_t* unRuta_t){
+    if (unRuta_t->ruta)
+        free( unRuta_t->ruta);
+    if (unRuta_t)
+    free(unRuta_t);
+}
 //Rediseñada
 //Verifica si el directorio esta afectado por la configuracion
 //de estar afectado devolvera la ruta base de la configuracion
 //EJ: dir afectado: /a/b; dir_a_crear: /a/b/c
-//devolvera /a/b
+//devolvera un Ruta_t con /a/b
 //EJ: dir_a_crear: /a/d
 //devolvera: NULL
-const char* afectaAlDirectorio(config_t *cf, const char *directorio_verificar)
+Ruta_t* afectaAlDirectorio(config_t *cf, const char *directorio_verificar)
 {
     //Verifico que no sea nulo
     if ( (!directorio_verificar) || (!cf) )
@@ -242,7 +255,7 @@ const char* afectaAlDirectorio(config_t *cf, const char *directorio_verificar)
     
     //Guardo el directorio mas cercano si es que no esta afectado directamente
     char* directorio_posible = calloc(MAXDIRLEN, sizeof(*directorio_posible));
-    Ruta_t *datos_ruta = malloc(sizeof(Ruta_t));
+    Ruta_t *datos_ruta = ruta_tInstanciar();
 
     
     int cantidad_rutas; 
@@ -257,7 +270,7 @@ const char* afectaAlDirectorio(config_t *cf, const char *directorio_verificar)
 
         sprintf(aux, "%d", i);
         datos_ruta->id_ruta = i;
-        // puedo tener maximo 999 definciones
+        // puedo tener de 0-999 definciones
         strncat(tag_ruta, aux,3);
 
         const char* directorio_afectado; 
@@ -275,14 +288,13 @@ const char* afectaAlDirectorio(config_t *cf, const char *directorio_verificar)
                //dir a verificar es un subdirectorio del directorio afectado
                if ( directorio_con_barra != NULL){
                    //TODO: esto es re croto, refactoriza y hacelo bien chanta
-                   strncpy(directorio_posible, directorio_con_barra, MAXDIRLEN);
+                   //strncpy(directorio_posible, directorio_con_barra, MAXDIRLEN);
+                   strncpy(datos_ruta->ruta, directorio_con_barra, MAXDIRLEN);
 
                     if (aux)
                         free(aux);
-                    if (datos_ruta)
-                        free(datos_ruta);
 
-                   return directorio_posible;
+                   return datos_ruta;
                }
                else if ( directorio_posible != NULL){
                    if (strlen(directorio_afectado) < strlen(directorio_posible))
@@ -295,19 +307,18 @@ const char* afectaAlDirectorio(config_t *cf, const char *directorio_verificar)
                    strncpy(directorio_posible, directorio_afectado, MAXDIRLEN);
 
 
-           } else  if(posicionSubString == NULL && posicionSubStringInverso != NULL){
+           } else  if ( posicionSubString == NULL && posicionSubStringInverso != NULL ){
                //dir afectado es un subdirectorio del directorio a verificar 
                //entonces no hago nada
                if ( directorio_con_barra != NULL){
                    //TODO: esto es re croto, refactoriza y hacelo bien chanta
-                   strncpy(directorio_posible, directorio_con_barra, MAXDIRLEN);
+                   //strncpy(directorio_posible, directorio_con_barra, MAXDIRLEN);
+                   strncpy(datos_ruta->ruta, directorio_con_barra, MAXDIRLEN);
 
                    if (aux)
                        free(aux);
-                   if (datos_ruta)
-                       free(datos_ruta);
 
-                   return directorio_posible;
+                   return datos_ruta;
                }
                continue;
            }
@@ -318,11 +329,10 @@ const char* afectaAlDirectorio(config_t *cf, const char *directorio_verificar)
            else if (*posicionSubString == *posicionSubStringInverso){
                if (aux)
                    free(aux);
-               if (datos_ruta)
-                   free(datos_ruta);
-               strncpy(directorio_posible, directorio_verificar, MAXDIRLEN);
+               //strncpy(directorio_posible, directorio_verificar, MAXDIRLEN);
+               strncpy(datos_ruta->ruta, directorio_verificar, MAXDIRLEN);
                //Son la misma ruta, asi que dejo de verificar y devuelvo la ruta
-               return directorio_posible;
+               return datos_ruta;
            }
            else
                LOG_PRINT("Error al procesar las rutas.");
@@ -330,15 +340,16 @@ const char* afectaAlDirectorio(config_t *cf, const char *directorio_verificar)
     }//for
     if (aux)
         free(aux);
-    if (datos_ruta)
-        free(datos_ruta);
 
 
     if ((strlen(directorio_posible) == 0) ){
         free(directorio_posible);
+        ruta_tDestruir(datos_ruta);
+
         return NULL;
      }
-    return directorio_posible;
+    strncpy(datos_ruta->ruta, directorio_posible, MAXDIRLEN);
+    return datos_ruta;
 }
 
 
