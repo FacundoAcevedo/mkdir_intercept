@@ -43,42 +43,9 @@
 #include "../logger/logger.h"
 
 
-//Hace todas las verificaciones
-bool verificar_habilitacion(const char *pathname){
-	if (DEBUG){
-        LOG_PRINT("-verificar_habilitacion()");
-    }
-
-	config_t cfg, *cf;
-
-    //Inicializo el parser de configuracion
-    cf = &cfg;
-    config_init(cf);
-    
-	//Intento leer el archivo
-    if (!config_read_file(cf, RUTA_CONFIG )) {
-       puts("ERROR al parsear la configuracion\n");
-       if (DEBUG)
-           LOG_PRINT("ERROR al parsear la configuracion");
-       config_destroy(cf);
-       return false;
-    }
-
-    //TODO: ESTA HARDCODEADO PARA COMPILAR
-    return false;
-
-
-}
 
 config_t* configuracion_cargar(const char *ruta)
 {
-    //Cargo la config
-
-    /*const char* ruta_;*/
-    /*if (ruta != NULL)*/
-        /*ruta_ = ruta;*/
-    /*else*/
-        /*ruta_ = RUTA_CONFIG;*/
      //Inicializo el parser de configuracion
 	config_t cfg, *cf;
     cf = &cfg;
@@ -97,7 +64,7 @@ config_t* configuracion_cargar(const char *ruta)
     
     return cf;
 }
-bool habilitadoAEscribir(const char *pathname){
+bool habilitado(const char *pathname){
 	/*//Corre todas las comprobaciones necesarias para*/
 	/*//determinar si el usuario puede crear un directorio ( o eleminarlo)*/
 	
@@ -134,8 +101,8 @@ bool habilitadoAEscribir(const char *pathname){
 			   /*return true;*/
 		/*}//if*/
 		/*else{*/
-			/*[>if(afectaAlDirectorio(cf, pathname)){<]*/
-			/*if(afectaAlDirectorio(cf, pathname)){*/
+			/*[>if(directorioAfectado(cf, pathname)){<]*/
+			/*if(directorioAfectado(cf, pathname)){*/
 				/*//El directorio es afectado por la configuracion*/
 
 				/*if (DEBUG){*/
@@ -175,48 +142,32 @@ bool habilitadoAEscribir(const char *pathname){
 
 
 
-int *obtenerGruposValidos( config_t* cf){
+Ruta_t* obtenerGruposInhabilitados( config_t* cf, Ruta_t* estructura_ruta){
 	/*Parsea la configuracion y obtiene los grupos
-	 * que estan habilitados para crear o eliminar directorios*/
+	 * que estan inhabilitados para crear o eliminar directorios*/
 
+
+    const config_setting_t *grupos;
 	
-				if (DEBUG){
-					printf("---obtenerGruposValidos\n");
-                    LOG_PRINT("---ObtenerGruposValidos");
-                    }
-	int  indice = 1;
-	//Reservo el espacio para los grupos validos
-	int (*gruposValidos) = malloc(sizeof (int) * MAXGRUPOS); 
-
-        const config_setting_t *grupos;
-        int count = 0, n = 0;
-	
-	//agrego a root a la lista
-	gruposValidos[0]=0;
-
+    //formo la ruta que uso en la config
+    char tag_ruta_grupos[4+4+4+22] = "confRuta";
+    char aux[3];
+    sprintf(aux, "%d",estructura_ruta->id_ruta);
+    strncat(tag_ruta_grupos, aux, 3);
+    strncat(tag_ruta_grupos, ".grupos_deshabilitados", 22);
     
 	//Obtengo los grupos parseados
-	grupos = config_lookup(cf, "Carpetas.gruposHabilitados");
+	grupos = config_lookup(cf, tag_ruta_grupos);
 	//obtengo la cantidad de grupos
-	count = config_setting_length(grupos);
+	estructura_ruta->grupos_cantidad = config_setting_length(grupos);
     
-	for (n = 0; n < count; n++) {
-		printf("Grupo: %d\n", (int) config_setting_get_int_elem(grupos, n));
-        LOG_PRINT("Grupo: %d", (int) config_setting_get_int_elem(grupos, n));
-		//Agrego los grupos del archivo
-		gruposValidos[n+1] = ((int) config_setting_get_int_elem(grupos, n));
-	}//for
+	//Agrego los grupos del archivo
+	for (int n = 0; n < estructura_ruta->grupos_cantidad ; n++)
+		estructura_ruta->grupos[n] = ((int) config_setting_get_int_elem(grupos, n));
 	
+	return estructura_ruta;
 
-
-	//cargo -1 en el resto de los casilleros vacios, para que no tengan mugre
-	indice = n+1;
-	while ( indice < MAXGRUPOS  )
-		gruposValidos[indice++] = -1;
-
-	return gruposValidos;
-
-}//obtenerGruposValidos
+}//obtenerGruposInhabilitados
 
 Ruta_t* ruta_tInstanciar(void)
 {
@@ -247,7 +198,7 @@ void ruta_tDestruir(Ruta_t* unRuta_t){
 //devolvera un Ruta_t con /a/b
 //EJ: dir_a_crear: /a/d
 //devolvera: NULL
-Ruta_t* afectaAlDirectorio(config_t *cf, const char *directorio_verificar)
+Ruta_t* directorioAfectado(config_t *cf, const char *directorio_verificar)
 {
     //Verifico que no sea nulo
     if ( (!directorio_verificar) || (!cf) )
@@ -292,6 +243,8 @@ Ruta_t* afectaAlDirectorio(config_t *cf, const char *directorio_verificar)
 
                     if (aux)
                         free(aux);
+                    if (directorio_posible)
+                       free(directorio_posible);
 
                    return datos_ruta;
                }
@@ -316,6 +269,8 @@ Ruta_t* afectaAlDirectorio(config_t *cf, const char *directorio_verificar)
                    if (aux)
                        free(aux);
 
+                   if (directorio_posible)
+                       free(directorio_posible);
                    return datos_ruta;
                }
                continue;
@@ -380,39 +335,40 @@ const char* rutasTerminaEnBarra(const char* rutaA, const char* rutaB)
 }
 
 
-bool verificarGrupos(config_t* cf){
-  gid_t gids[MAXGRUPOS];
-  int *gruposValidos = obtenerGruposValidos(cf);
-  int count, curr, aux;
-				if (DEBUG){
-					printf("--verificarGrupos()\n");
-                    LOG_PRINT("--verificarGrupos()");
-                }
+bool verificarGrupos(config_t* cf, Ruta_t* estructura_ruta){
+  /*gid_t gids[MAXGRUPOS];*/
+  /*int *gruposValidos = obtenerGruposInhabilitados(cf, estructura_ruta);*/
+  /*int count, curr, aux;*/
+				/*if (DEBUG){*/
+					/*printf("--verificarGrupos()\n");*/
+                    /*LOG_PRINT("--verificarGrupos()");*/
+                /*}*/
   
-  //Obtengo la cantidad de grupos en count, y guardo los gid en gids.
-  if ((count = getgroups(dim(gids), gids)) == -1){
-    perror("getgroups() error");
-    return false;
-  }
+  /*//Obtengo la cantidad de grupos en count, y guardo los gid en gids.*/
+  /*if ((count = getgroups(dim(gids), gids)) == -1){*/
+    /*perror("getgroups() error");*/
+    /*return false;*/
+  /*}*/
 
 
-  else {
-    fflush(NULL);//me tiraba un error sin esto
-    for (curr=0; curr<count; curr++){
-	for(aux=0; aux < MAXGRUPOS; aux++){
-  //            printf("%i-%i) Guid: %d - grupoValido: %d\n",curr,aux,((int) gids[curr]) ,(int) ((gruposValidos)[aux]));
-	      //Valido que el grupo del usuario sea uno valido
-	      if  (((int) gids[curr]) == ((int) ((gruposValidos)[aux]) )){
-		free(gruposValidos);
-		return true;
-		}//if
-    	}//for
+  /*else {*/
+    /*fflush(NULL);//me tiraba un error sin esto*/
+    /*for (curr=0; curr<count; curr++){*/
+	/*for(aux=0; aux < MAXGRUPOS; aux++){*/
+  /*//            printf("%i-%i) Guid: %d - grupoValido: %d\n",curr,aux,((int) gids[curr]) ,(int) ((gruposValidos)[aux]));*/
+		  /*//Valido que el grupo del usuario sea uno valido*/
+		  /*if  (((int) gids[curr]) == ((int) ((gruposValidos)[aux]) )){*/
+		/*free(gruposValidos);*/
+		/*return true;*/
+		/*}//if*/
+        /*}//for*/
 
-    }//for
+    /*}//for*/
 
-    free(gruposValidos);
-    return false;
-  }//else
+    /*free(gruposValidos);*/
+    /*return false;*/
+  /*}//else*/
+  return false;
 }
 
 

@@ -22,20 +22,21 @@ typedef struct ruta_t {
    bool recursivo;
    bool activo;
    int grupos[MAXGRUPOS];
+   int grupos_cantidad;
    int usuarios[MAXUSUARIOS];
+   int usuarios_cantidad;
    } Ruta_t;
 
-bool habilitadoAEscribir(const char*);
+bool habilitado(const char*);
 
-int *obtenerGruposValidos( config_t*);
 
-Ruta_t *afectaAlDirectorio(config_t* , const char*);
+Ruta_t *directorioAfectado(config_t* , const char*);
 
 Ruta_t* ruta_tInstanciar(void);
 
 void ruta_tDestruir(Ruta_t*);
 
-bool verificarGrupos(config_t*);
+Ruta_t* obtenerGruposInhabilitados(config_t*, Ruta_t*);
 
 config_t* configuracion_cargar(const char*);
 
