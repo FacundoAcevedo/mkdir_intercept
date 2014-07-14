@@ -236,9 +236,9 @@ Ruta_t* ruta_tInstanciar(void)
 
 void ruta_tDestruir(Ruta_t* unRuta_t){
     if (unRuta_t->ruta)
-        free( unRuta_t->ruta);
+        free((char*) unRuta_t->ruta);
     if (unRuta_t)
-    free(unRuta_t);
+    free((Ruta_t*) unRuta_t);
 }
 //Rediseñada
 //Verifica si el directorio esta afectado por la configuracion
@@ -288,7 +288,6 @@ Ruta_t* afectaAlDirectorio(config_t *cf, const char *directorio_verificar)
                //dir a verificar es un subdirectorio del directorio afectado
                if ( directorio_con_barra != NULL){
                    //TODO: esto es re croto, refactoriza y hacelo bien chanta
-                   //strncpy(directorio_posible, directorio_con_barra, MAXDIRLEN);
                    strncpy(datos_ruta->ruta, directorio_con_barra, MAXDIRLEN);
 
                     if (aux)
@@ -312,7 +311,6 @@ Ruta_t* afectaAlDirectorio(config_t *cf, const char *directorio_verificar)
                //entonces no hago nada
                if ( directorio_con_barra != NULL){
                    //TODO: esto es re croto, refactoriza y hacelo bien chanta
-                   //strncpy(directorio_posible, directorio_con_barra, MAXDIRLEN);
                    strncpy(datos_ruta->ruta, directorio_con_barra, MAXDIRLEN);
 
                    if (aux)
@@ -329,9 +327,9 @@ Ruta_t* afectaAlDirectorio(config_t *cf, const char *directorio_verificar)
            else if (*posicionSubString == *posicionSubStringInverso){
                if (aux)
                    free(aux);
-               //strncpy(directorio_posible, directorio_verificar, MAXDIRLEN);
+               if (directorio_posible)
+                   free(directorio_posible);
                strncpy(datos_ruta->ruta, directorio_verificar, MAXDIRLEN);
-               //Son la misma ruta, asi que dejo de verificar y devuelvo la ruta
                return datos_ruta;
            }
            else
@@ -349,6 +347,7 @@ Ruta_t* afectaAlDirectorio(config_t *cf, const char *directorio_verificar)
         return NULL;
      }
     strncpy(datos_ruta->ruta, directorio_posible, MAXDIRLEN);
+    free(directorio_posible);
     return datos_ruta;
 }
 
