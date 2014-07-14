@@ -49,10 +49,10 @@ int mkdir(const char *pathname, mode_t mode){
      return 1;
   }
 
-  const char* salida = afectaAlDirectorio(cf,pathname);
+  const char* salida = directorioAfectado(cf,pathname);
   printf("Salida: %s", salida);
   
-  if( afectaAlDirectorio(cf,pathname) != NULL )
+  if( directorioAfectado(cf,pathname) != NULL )
   {
   	puts("Carpeta afectada por la configuracion");
     LOG_PRINT("Carpeta afectada por la configuracion");
