@@ -22,23 +22,14 @@
 #include <libconfig.h>
 
 
-//Tests de  afectaAlDirectorio(config_t* , const char*);
+//Tests de  directorioAfectado(config_t* , const char*);
 
-//Array de directorios a probar
-const char *directorios[4];
 
 //Puntero a la config
 config_t cfg, *cf;
 
-int init_afectaAlDirectorio(void)
+int init_directorioAfectado(void)
 {
-    ////Creo los directorios afectados
-
-    directorios[0] = "/tmp/test/";
-    directorios[1] = "/tmp/test/A/";
-    directorios[2] ="/tmp/test/A/B/";
-    directorios[3] = "/tmp/A/D/";
-
 
     //Inicializo el parser de configuracion
     cf = &cfg;
@@ -56,7 +47,7 @@ int init_afectaAlDirectorio(void)
 
 }
 
-int clean_afectaAlDirectorio(void)
+int clean_directorioAfectado(void)
 {
     config_destroy(cf);
     return 0;
@@ -66,7 +57,7 @@ void testDirectorioFueraDeRutaAfectada(void)
 {
     char* directorioFueraDeRuta = "/var/www/";
 
-    Ruta_t *salida = afectaAlDirectorio(cf, directorioFueraDeRuta);
+    Ruta_t *salida = directorioAfectado(cf, directorioFueraDeRuta);
 
     CU_ASSERT_PTR_NULL( salida);
     if (salida)
@@ -82,7 +73,7 @@ void testDirectorioFueraDeRutaAfectadaLarga(void)
     for (i = 0; i < (largo-1); i++)
         strcat(directorioFueraDeRuta, "a");
         
-    Ruta_t *salida = afectaAlDirectorio(cf, directorioFueraDeRuta);
+    Ruta_t *salida = directorioAfectado(cf, directorioFueraDeRuta);
     CU_ASSERT_PTR_NULL(salida);// salida);
     free(directorioFueraDeRuta);
     if (salida)
@@ -92,7 +83,7 @@ void testDirectorioFueraDeRutaAfectadaLarga(void)
 void testDirectorioNulo(void)
 {
 
-    Ruta_t *salida = afectaAlDirectorio(cf, NULL);
+    Ruta_t *salida = directorioAfectado(cf, NULL);
     CU_ASSERT_PTR_NULL( salida);
     if (salida)
         ruta_tDestruir(salida);
@@ -102,7 +93,7 @@ void testConfiguracionNula(void)
 {
 
     char* ruta = "/tmp/";
-    Ruta_t *salida = afectaAlDirectorio(NULL, ruta);
+    Ruta_t *salida = directorioAfectado(NULL, ruta);
     CU_ASSERT_PTR_NULL( salida);
     if (salida)
         ruta_tDestruir(salida);
@@ -111,7 +102,7 @@ void testConfiguracionNula(void)
 void testDirectorioYConfiguracionNula(void)
 {
 
-    Ruta_t *salida = afectaAlDirectorio(NULL, NULL);
+    Ruta_t *salida = directorioAfectado(NULL, NULL);
     CU_ASSERT_PTR_NULL( salida);
     if (salida)
         ruta_tDestruir(salida);
@@ -121,17 +112,17 @@ void testDirectorioRutaValida(void)
     char* directorio0 = "/tmp/test/";
     char* directorio1 = "/tmp/test/A/";
 
-    Ruta_t *salida0 = afectaAlDirectorio(cf, directorio0);
+    Ruta_t *salida0 = directorioAfectado(cf, directorio0);
     CU_ASSERT_PTR_NOT_NULL_FATAL(salida0);
     CU_ASSERT_STRING_EQUAL( salida0->ruta, directorio0);
     if (salida0)
         ruta_tDestruir(salida0);
 
-    Ruta_t *salida1 = afectaAlDirectorio(cf, directorio1);
+    Ruta_t *salida1 = directorioAfectado(cf, directorio1);
     CU_ASSERT_PTR_NOT_NULL_FATAL(salida1);
     CU_ASSERT_STRING_EQUAL(salida1->ruta, directorio1);
     if (salida1)
-        ruta_tDestruir(salida0);
+        ruta_tDestruir(salida1);
 }
 
 void testDirectorioRutaValidaConBarra(void)
@@ -139,11 +130,11 @@ void testDirectorioRutaValidaConBarra(void)
     char* directorio0 = "/tmp/test/";
     char* directorio1 = "/tmp/test";
 
-    Ruta_t *salida0 = afectaAlDirectorio(cf, directorio0);
+    Ruta_t *salida0 = directorioAfectado(cf, directorio0);
     CU_ASSERT_PTR_NOT_NULL_FATAL(salida0);
     CU_ASSERT_STRING_EQUAL(salida0->ruta, directorio0);
 
-    Ruta_t *salida1 = afectaAlDirectorio(cf, directorio1);
+    Ruta_t *salida1 = directorioAfectado(cf, directorio1);
     CU_ASSERT_PTR_NOT_NULL_FATAL(salida1);
     CU_ASSERT_STRING_EQUAL(salida1->ruta, directorio0);
     
@@ -159,7 +150,7 @@ void testDirectorioRutaVacia(void)
 {
     char* directorioRutaVacia = "";
 
-    Ruta_t *salida = afectaAlDirectorio(cf, directorioRutaVacia);
+    Ruta_t *salida = directorioAfectado(cf, directorioRutaVacia);
     CU_ASSERT_PTR_NULL( salida);
     if (salida)
         ruta_tDestruir(salida);
@@ -194,36 +185,104 @@ void testRutaTerminaEnBarraInvalida(void)
 }
 
 
+//Grupos
+int init_grupos(void)
+{
+
+    //Inicializo el parser de configuracion
+    cf = &cfg;
+    config_init(cf);
+    
+	//Intento leer el archivo
+    if (!config_read_file(cf, "tests/config1.txt" )) {
+       int linea =  config_error_line(cf);
+       printf("ERROR al parsear la configuracion, linea: %d\n", linea);
+       config_destroy(cf);
+       return 1;
+    }
+    return 0;
+
+
+}
+
+int clean_grupos(void)
+{
+
+    config_destroy(cf);
+    return 0;
+}
+
+void testGruposCantidad(void){
+    char* directorio0 = "/tmp/test/";
+
+    Ruta_t *estructura_ruta = directorioAfectado(cf, directorio0);
+
+    obtenerGruposInhabilitados(cf, estructura_ruta);
+    CU_ASSERT_EQUAL(estructura_ruta->grupos_cantidad, 4);
+
+    if (estructura_ruta)
+        ruta_tDestruir(estructura_ruta);
+}
+
+void testGruposGID(void){
+    char* directorio0 = "/tmp/test/";
+
+    double grupos_deshabilitados[] = {100,1000, 2000, 3000}; 
+    Ruta_t *estructura_ruta = directorioAfectado(cf, directorio0);
+
+    obtenerGruposInhabilitados(cf, estructura_ruta);
+    for (int i = 0; i < estructura_ruta->grupos_cantidad; i++){
+
+
+        CU_ASSERT_EQUAL_FATAL(estructura_ruta->grupos[i],\
+            grupos_deshabilitados[i]);
+    }
+
+    if (estructura_ruta)
+        ruta_tDestruir(estructura_ruta);
+}
 
 int main(void)
 {
-   CU_pSuite pSuite = NULL;
+   CU_pSuite pSuite_directorio = NULL;
+   CU_pSuite pSuite_grupos = NULL;
 
    /* initialize the CUnit test registry */
    if (CUE_SUCCESS != CU_initialize_registry())
       return CU_get_error();
 
    /* add a suite to the registry */
-   pSuite = CU_add_suite("afectaAlDirectorio", init_afectaAlDirectorio, clean_afectaAlDirectorio);
-   if (NULL == pSuite) {
+   pSuite_directorio = CU_add_suite("directorioAfectado", init_directorioAfectado, clean_directorioAfectado);
+   pSuite_grupos = CU_add_suite("grupos", init_grupos, clean_grupos);
+   if (NULL == pSuite_directorio) {
       CU_cleanup_registry();
       return CU_get_error();
    }
 
+   if (NULL == pSuite_grupos) {
+      CU_cleanup_registry();
+      return CU_get_error();
+   }
    /* add the tests to the suite */
 
-   if ((NULL == CU_add_test(pSuite, "Test directorio fuera de ruta", testDirectorioFueraDeRutaAfectada))||
-           (NULL == CU_add_test(pSuite, "Test directorio largo fuera de ruta", testDirectorioFueraDeRutaAfectadaLarga)) ||
-           (NULL == CU_add_test(pSuite, "Test directorio Nulo", testDirectorioNulo))||
-           (NULL == CU_add_test(pSuite, "Test directorio valido", testDirectorioRutaValida)) ||
-           (NULL == CU_add_test(pSuite, "Test directorio valido con barra", testDirectorioRutaValidaConBarra)) ||
-           (NULL == CU_add_test(pSuite, "Test directorio ruta vacia", testDirectorioRutaVacia)) ||
-           (NULL == CU_add_test(pSuite, "Test configuracion nula", testConfiguracionNula )) ||
-           (NULL == CU_add_test(pSuite, "Test directorio y configuracion nulas ", testDirectorioYConfiguracionNula )) ||
+   if ((NULL == CU_add_test(pSuite_directorio, "Test directorio fuera de ruta", testDirectorioFueraDeRutaAfectada))||
+           (NULL == CU_add_test(pSuite_directorio, "Test directorio largo fuera de ruta", testDirectorioFueraDeRutaAfectadaLarga)) ||
+           (NULL == CU_add_test(pSuite_directorio, "Test directorio Nulo", testDirectorioNulo))||
+           (NULL == CU_add_test(pSuite_directorio, "Test directorio valido", testDirectorioRutaValida)) ||
+           (NULL == CU_add_test(pSuite_directorio, "Test directorio valido con barra", testDirectorioRutaValidaConBarra)) ||
+           (NULL == CU_add_test(pSuite_directorio, "Test directorio ruta vacia", testDirectorioRutaVacia)) ||
+           (NULL == CU_add_test(pSuite_directorio, "Test configuracion nula", testConfiguracionNula )) ||
+           (NULL == CU_add_test(pSuite_directorio, "Test directorio y configuracion nulas ", testDirectorioYConfiguracionNula )) ||
 
-           (NULL == CU_add_test(pSuite, "Test ruta termina en barra valida", testRutaTerminaEnBarraValida)) ||
-           (NULL == CU_add_test(pSuite, "Test ruta termina en barra valida Invertida", testRutaTerminaEnBarraValidaInvertida)) ||
-           (NULL == CU_add_test(pSuite, "Test ruta termina en barra invalida", testRutaTerminaEnBarraInvalida)))
+           (NULL == CU_add_test(pSuite_directorio, "Test ruta termina en barra valida", testRutaTerminaEnBarraValida)) ||
+           (NULL == CU_add_test(pSuite_directorio, "Test ruta termina en barra valida Invertida", testRutaTerminaEnBarraValidaInvertida)) ||
+           (NULL == CU_add_test(pSuite_directorio, "Test ruta termina en barra invalida", testRutaTerminaEnBarraInvalida)))
+   {
+      CU_cleanup_registry();
+      return CU_get_error();
+   }
+   if ((NULL == CU_add_test(pSuite_grupos, "Test cantidad de grupos", testGruposCantidad)) ||
+       NULL == CU_add_test(pSuite_grupos, "Test grupos GID", testGruposCantidad)) 
    {
       CU_cleanup_registry();
       return CU_get_error();
