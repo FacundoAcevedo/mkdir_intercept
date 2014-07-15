@@ -189,27 +189,12 @@ void testRutaTerminaEnBarraInvalida(void)
 int init_grupos(void)
 {
 
-    //Inicializo el parser de configuracion
-    cf = &cfg;
-    config_init(cf);
-    
-	//Intento leer el archivo
-    if (!config_read_file(cf, "tests/config1.txt" )) {
-       int linea =  config_error_line(cf);
-       printf("ERROR al parsear la configuracion, linea: %d\n", linea);
-       config_destroy(cf);
-       return 1;
-    }
-    return 0;
-
-
+    return init_directorioAfectado();
 }
 
 int clean_grupos(void)
 {
-
-    config_destroy(cf);
-    return 0;
+    return clean_directorioAfectado();
 }
 
 void testGruposCantidad(void){
@@ -227,7 +212,7 @@ void testGruposCantidad(void){
 void testGruposGID(void){
     char* directorio0 = "/tmp/test/";
 
-    double grupos_deshabilitados[] = {100,1000, 2000, 3000}; 
+    double grupos_deshabilitados[] = {100, 0, 2000, 3000}; 
     Ruta_t *estructura_ruta = directorioAfectado(cf, directorio0);
 
     obtenerGruposInhabilitados(cf, estructura_ruta);
@@ -242,24 +227,183 @@ void testGruposGID(void){
         ruta_tDestruir(estructura_ruta);
 }
 
+/*
+ *Algo quisquillosa, el usuario que ejecuta la prueba debe estar en la configuracion
+ */
+void testGrupoInhabilitado(void){
+    char* directorio0 = "/tmp/test/";
+
+    Ruta_t *estructura_ruta = directorioAfectado(cf, directorio0);
+
+    CU_ASSERT_TRUE(grupoInhabilitado(cf, estructura_ruta));
+
+
+    if (estructura_ruta)
+        ruta_tDestruir(estructura_ruta);
+}
+
+void testGrupoHabilitado(void){
+    char* directorio0 = "/tmp/test/A/";
+
+    Ruta_t *estructura_ruta = directorioAfectado(cf, directorio0);
+
+    CU_ASSERT_FALSE(grupoInhabilitado(cf, estructura_ruta));
+
+
+    if (estructura_ruta)
+        ruta_tDestruir(estructura_ruta);
+}
+
+void testUsuariosCantidad(void){
+    char* directorio0 = "/tmp/test/";
+
+    Ruta_t *estructura_ruta = directorioAfectado(cf, directorio0);
+
+    obtenerUsuariosInhabilitados(cf, estructura_ruta);
+    CU_ASSERT_EQUAL(estructura_ruta->usuarios_cantidad, 2);
+
+    if (estructura_ruta)
+        ruta_tDestruir(estructura_ruta);
+}
+
+
+void testUsuariosUID(void){
+    char* directorio0 = "/tmp/test/A/B/";
+
+    double usuarios_deshabilitados[] = {1000, 100, 300, 500};
+    Ruta_t *estructura_ruta = directorioAfectado(cf, directorio0);
+
+    obtenerUsuariosInhabilitados(cf, estructura_ruta);
+    for (int i = 0; i < estructura_ruta->usuarios_cantidad; i++){
+
+
+        CU_ASSERT_EQUAL_FATAL(estructura_ruta->usuarios[i],\
+            usuarios_deshabilitados[i]);
+    }
+
+    if (estructura_ruta)
+        ruta_tDestruir(estructura_ruta);
+}
+
+/*
+ *Algo quisquillosa, el usuario que ejecuta la prueba debe estar en la configuracion
+ */
+void testUsuarioInhabilitado(void){
+    char* directorio0 = "/tmp/test/";
+
+    Ruta_t *estructura_ruta = directorioAfectado(cf, directorio0);
+
+    CU_ASSERT_TRUE(usuarioInhabilitado(cf, estructura_ruta));
+
+
+    if (estructura_ruta)
+        ruta_tDestruir(estructura_ruta);
+}
+
+void testUsuarioHabilitado(void){
+    char* directorio0 = "/tmp/test/A/";
+
+    Ruta_t *estructura_ruta = directorioAfectado(cf, directorio0);
+
+    CU_ASSERT_FALSE(usuarioInhabilitado(cf, estructura_ruta));
+
+
+    if (estructura_ruta)
+        ruta_tDestruir(estructura_ruta);
+}
+
+
+
+
+
+
+
+
+
+
+int init_parametros(void)
+{
+
+    return init_directorioAfectado();
+
+}
+
+int clean_parametros(void)
+{
+    return clean_directorioAfectado();
+}
+
+void testParametrosActivoTrue(void){
+    char* directorio0 = "/tmp/test/";
+
+    Ruta_t *estructura_ruta = directorioAfectado(cf, directorio0);
+
+    CU_ASSERT_TRUE(directivaHabilitada(cf, estructura_ruta));
+
+
+    if (estructura_ruta)
+        ruta_tDestruir(estructura_ruta);
+}
+void testParametrosActivoFalse(void){
+    char* directorio0 = "/tmp/test/A/";
+
+    Ruta_t *estructura_ruta = directorioAfectado(cf, directorio0);
+
+    CU_ASSERT_FALSE(directivaHabilitada(cf, estructura_ruta));
+
+
+    if (estructura_ruta)
+        ruta_tDestruir(estructura_ruta);
+}
+void testParametrosRecursivoTrue(void){
+    char* directorio0 = "/tmp/test/A/";
+
+    Ruta_t *estructura_ruta = directorioAfectado(cf, directorio0);
+
+    CU_ASSERT_TRUE(directivaRecursiva(cf, estructura_ruta));
+
+
+    if (estructura_ruta)
+        ruta_tDestruir(estructura_ruta);
+}
+void testParametrosRecursivoFalse(void){
+    char* directorio0 = "/tmp/test/";
+
+    Ruta_t *estructura_ruta = directorioAfectado(cf, directorio0);
+
+    CU_ASSERT_FALSE(directivaRecursiva(cf, estructura_ruta));
+
+
+    if (estructura_ruta)
+        ruta_tDestruir(estructura_ruta);
+}
+
+
 int main(void)
 {
    CU_pSuite pSuite_directorio = NULL;
-   CU_pSuite pSuite_grupos = NULL;
+   CU_pSuite pSuite_grupos_y_usuarios = NULL;
+   CU_pSuite pSuite_parametros= NULL;
 
    /* initialize the CUnit test registry */
    if (CUE_SUCCESS != CU_initialize_registry())
       return CU_get_error();
 
    /* add a suite to the registry */
-   pSuite_directorio = CU_add_suite("directorioAfectado", init_directorioAfectado, clean_directorioAfectado);
-   pSuite_grupos = CU_add_suite("grupos", init_grupos, clean_grupos);
+   pSuite_directorio = CU_add_suite("directorios", init_directorioAfectado, clean_directorioAfectado);
+   pSuite_grupos_y_usuarios = CU_add_suite("grupos y usuarios", init_grupos, clean_grupos);
+   pSuite_parametros= CU_add_suite("parametros", init_parametros, clean_parametros);
    if (NULL == pSuite_directorio) {
       CU_cleanup_registry();
       return CU_get_error();
    }
 
-   if (NULL == pSuite_grupos) {
+   if (NULL == pSuite_grupos_y_usuarios) {
+      CU_cleanup_registry();
+      return CU_get_error();
+   }
+
+   if (NULL == pSuite_parametros) {
       CU_cleanup_registry();
       return CU_get_error();
    }
@@ -281,13 +425,28 @@ int main(void)
       CU_cleanup_registry();
       return CU_get_error();
    }
-   if ((NULL == CU_add_test(pSuite_grupos, "Test cantidad de grupos", testGruposCantidad)) ||
-       NULL == CU_add_test(pSuite_grupos, "Test grupos GID", testGruposCantidad)) 
+   if ((NULL == CU_add_test(pSuite_grupos_y_usuarios, "Test cantidad de grupos", testGruposCantidad)) ||
+       NULL == CU_add_test(pSuite_grupos_y_usuarios, "Test grupos GID", testGruposGID) ||
+       NULL == CU_add_test(pSuite_grupos_y_usuarios, "Test grupo inhabilitado", testGrupoInhabilitado)||
+       NULL == CU_add_test(pSuite_grupos_y_usuarios, "Test grupo habilitado", testGrupoHabilitado) ||
+
+       NULL == CU_add_test(pSuite_grupos_y_usuarios, "Test cantidad de usuarios", testUsuariosCantidad) ||
+       NULL == CU_add_test(pSuite_grupos_y_usuarios, "Test usuarios UID", testUsuariosUID) ||
+       NULL == CU_add_test(pSuite_grupos_y_usuarios, "Test usuario inhabilitado", testUsuarioInhabilitado)||
+       NULL == CU_add_test(pSuite_grupos_y_usuarios, "Test usuario habilitado", testUsuarioHabilitado))
    {
       CU_cleanup_registry();
       return CU_get_error();
    }
 
+   if ((NULL == CU_add_test(pSuite_parametros, "Test parametros activo true", testParametrosActivoTrue)) ||
+      (NULL == CU_add_test(pSuite_parametros, "Test parametros activo false", testParametrosActivoFalse)) ||
+      (NULL == CU_add_test(pSuite_parametros, "Test parametros recursivo true", testParametrosRecursivoTrue)) ||
+      (NULL == CU_add_test(pSuite_parametros, "Test parametros recursivo false", testParametrosRecursivoFalse)))
+   {
+      CU_cleanup_registry();
+      return CU_get_error();
+   }
    /* Run all tests using the CUnit Basic interface */
    CU_basic_set_mode(CU_BRM_VERBOSE);
    CU_basic_run_tests();
