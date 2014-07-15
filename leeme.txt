@@ -49,4 +49,6 @@ usuarios_deshabilitados = [uid, ...] uid de los usuarios que no podran crear dir
 
 NOTAS IMPORTANTES:
     Las rutas deben definirse exactamente igual en todos los lugares. 
-    SIEMPRE DEBEN TERMINAR EN BARRA
+
+    Si el usuario pertenece a almenos un grupo deshabilitado, sea deshabilitado
+    toatalmente
