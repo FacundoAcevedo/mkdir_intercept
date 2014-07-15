@@ -16,6 +16,7 @@
 #include <stdbool.h>
 #include <libconfig.h>
 
+//TODO: fijarte si esta bien que gupps y usuarios sean int y no long o double
 typedef struct ruta_t {
    char* ruta;
    int id_ruta;
@@ -29,16 +30,25 @@ typedef struct ruta_t {
 
 bool habilitado(const char*);
 
+config_t* configuracion_cargar(const char*);
 
 Ruta_t *directorioAfectado(config_t* , const char*);
 
-Ruta_t* ruta_tInstanciar(void);
-
-void ruta_tDestruir(Ruta_t*);
-
 Ruta_t* obtenerGruposInhabilitados(config_t*, Ruta_t*);
+bool grupoInhabilitado(config_t* , Ruta_t*);
 
-config_t* configuracion_cargar(const char*);
+Ruta_t* obtenerUsuariosInhabilitados(config_t*, Ruta_t*);
+bool usuarioInhabilitado(config_t* , Ruta_t*);
+
+bool directivaHabilitada(config_t* , Ruta_t* );
+bool directivaRecursiva(config_t* , Ruta_t*);
+
+bool directivaHabilitada(config_t*, Ruta_t*); 
+bool directivaRecursiva(config_t* , Ruta_t* );
 
 const char* rutasTerminaEnBarra(const char*, const char*);
+
+Ruta_t* ruta_tInstanciar(void);
+void ruta_tDestruir(Ruta_t*);
+
 #endif /* !VALIDACIONES_H */

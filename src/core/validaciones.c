@@ -142,32 +142,6 @@ bool habilitado(const char *pathname){
 
 
 
-Ruta_t* obtenerGruposInhabilitados( config_t* cf, Ruta_t* estructura_ruta){
-	/*Parsea la configuracion y obtiene los grupos
-	 * que estan inhabilitados para crear o eliminar directorios*/
-
-
-    const config_setting_t *grupos;
-	
-    //formo la ruta que uso en la config
-    char tag_ruta_grupos[4+4+4+22] = "confRuta";
-    char aux[3];
-    sprintf(aux, "%d",estructura_ruta->id_ruta);
-    strncat(tag_ruta_grupos, aux, 3);
-    strncat(tag_ruta_grupos, ".grupos_deshabilitados", 22);
-    
-	//Obtengo los grupos parseados
-	grupos = config_lookup(cf, tag_ruta_grupos);
-	//obtengo la cantidad de grupos
-	estructura_ruta->grupos_cantidad = config_setting_length(grupos);
-    
-	//Agrego los grupos del archivo
-	for (int n = 0; n < estructura_ruta->grupos_cantidad ; n++)
-		estructura_ruta->grupos[n] = ((int) config_setting_get_int_elem(grupos, n));
-	
-	return estructura_ruta;
-
-}//obtenerGruposInhabilitados
 
 Ruta_t* ruta_tInstanciar(void)
 {
@@ -335,41 +309,141 @@ const char* rutasTerminaEnBarra(const char* rutaA, const char* rutaB)
 }
 
 
-bool verificarGrupos(config_t* cf, Ruta_t* estructura_ruta){
-  /*gid_t gids[MAXGRUPOS];*/
-  /*int *gruposValidos = obtenerGruposInhabilitados(cf, estructura_ruta);*/
-  /*int count, curr, aux;*/
-				/*if (DEBUG){*/
-					/*printf("--verificarGrupos()\n");*/
-                    /*LOG_PRINT("--verificarGrupos()");*/
-                /*}*/
+/*
+ *Parsea la configuracion y obtiene los grupos
+ *que estan inhabilitados para crear o eliminar directorios
+ */
+Ruta_t* obtenerGruposInhabilitados( config_t* cf, Ruta_t* estructura_ruta){
+
+
+    const config_setting_t *grupos;
+	
+    //formo la ruta que uso en la config
+    char tag_ruta_grupos[4+4+4+22] = "confRuta";
+    char aux[3];
+    sprintf(aux, "%d",estructura_ruta->id_ruta);
+    strncat(tag_ruta_grupos, aux, 3);
+    strncat(tag_ruta_grupos, ".grupos_deshabilitados", 22);
+    
+	//Obtengo los grupos parseados
+	grupos = config_lookup(cf, tag_ruta_grupos);
+	//obtengo la cantidad de grupos
+	estructura_ruta->grupos_cantidad = config_setting_length(grupos);
+    
+	//Agrego los grupos del archivo
+	for (int n = 0; n < estructura_ruta->grupos_cantidad ; n++)
+		estructura_ruta->grupos[n] = ((int) config_setting_get_int_elem(grupos, n));
+	
+	return estructura_ruta;
+
+}//obtenerGruposInhabilitados
+
+
+/*
+ *Verifica si el usuario pertenece a alguno de los grupos inhabilitados
+ */
+bool grupoInhabilitado(config_t* cf, Ruta_t* estructura_ruta){
+
+  gid_t gids[MAXGRUPOS];
+  int count;
+
+  obtenerGruposInhabilitados(cf, estructura_ruta);
   
-  /*//Obtengo la cantidad de grupos en count, y guardo los gid en gids.*/
-  /*if ((count = getgroups(dim(gids), gids)) == -1){*/
-    /*perror("getgroups() error");*/
-    /*return false;*/
-  /*}*/
+  //Obtengo los grupos suplementarios del usuario
+  if ((count = getgroups(dim(gids), gids)) == -1){
+    perror("getgroups() error");
+    return true;
+  }
 
+  //Verifico que los grupos del usuario no esten vetados
+  for ( int i = 0; i < estructura_ruta->grupos_cantidad; i++ )
+      for ( int n = 0; n < count; n++ )
+          if ( estructura_ruta->grupos[i] == gids[n])
+              return true;
 
-  /*else {*/
-    /*fflush(NULL);//me tiraba un error sin esto*/
-    /*for (curr=0; curr<count; curr++){*/
-	/*for(aux=0; aux < MAXGRUPOS; aux++){*/
-  /*//            printf("%i-%i) Guid: %d - grupoValido: %d\n",curr,aux,((int) gids[curr]) ,(int) ((gruposValidos)[aux]));*/
-		  /*//Valido que el grupo del usuario sea uno valido*/
-		  /*if  (((int) gids[curr]) == ((int) ((gruposValidos)[aux]) )){*/
-		/*free(gruposValidos);*/
-		/*return true;*/
-		/*}//if*/
-        /*}//for*/
-
-    /*}//for*/
-
-    /*free(gruposValidos);*/
-    /*return false;*/
-  /*}//else*/
   return false;
+      
 }
 
+/*
+ *Parsea la configuracion y obtiene los grupos
+ *que estan inhabilitados para crear o eliminar directorios
+ */
+Ruta_t* obtenerUsuariosInhabilitados( config_t* cf, Ruta_t* estructura_ruta){
 
 
+    const config_setting_t *usuarios;
+	
+    //formo la ruta que uso en la config
+    char tag_ruta_usuarios[4+4+4+24] = "confRuta";
+    char aux[3];
+    sprintf(aux, "%d",estructura_ruta->id_ruta);
+    strncat(tag_ruta_usuarios, aux, 3);
+    strncat(tag_ruta_usuarios, ".usuarios_deshabilitados", 24);
+    
+	//Obtengo los usuarios parseados
+	usuarios = config_lookup(cf, tag_ruta_usuarios);
+	//obtengo la cantidad de usuarios
+	estructura_ruta->usuarios_cantidad = config_setting_length(usuarios);
+    
+	//Agrego los usuarios del archivo
+	for (int n = 0; n < estructura_ruta->usuarios_cantidad ; n++)
+		estructura_ruta->usuarios[n] = ((int) config_setting_get_int_elem(usuarios, n));
+	
+	return estructura_ruta;
+
+}//obtenerUsuariosInhabilitados
+
+/*
+ *Verifica si el usuario pertenece a alguno de los grupos inhabilitados
+ */
+bool usuarioInhabilitado(config_t* cf, Ruta_t* estructura_ruta){
+
+  uid_t uid = getuid();
+
+  obtenerUsuariosInhabilitados(cf, estructura_ruta);
+  
+
+  //Verifico que el usuario no este proscripto
+  for ( int i = 0; i < estructura_ruta->usuarios_cantidad; i++ )
+      if ( estructura_ruta->usuarios[i] == uid )
+          return true;
+
+  return false;
+}//usuarioInhabilitado
+
+bool directivaHabilitada(config_t* cf, Ruta_t* estructura_ruta)
+{
+
+    const config_setting_t *path_habilitado;
+    bool activo = false;
+    //formo la ruta que uso en la config
+    char tag_ruta_activo[4+4+4+7] = "confRuta";
+    char aux[3];
+    sprintf(aux, "%d",estructura_ruta->id_ruta);
+    strncat(tag_ruta_activo, aux, 3);
+    strncat(tag_ruta_activo, ".activo", 7);
+    
+	path_habilitado= config_lookup(cf, tag_ruta_activo);
+	activo = config_setting_get_bool(path_habilitado);
+
+    return activo;
+}
+
+bool directivaRecursiva(config_t* cf, Ruta_t* estructura_ruta)
+{
+
+    const config_setting_t *path_recursivo;
+    bool recursivo = false;
+    //formo la ruta que uso en la config
+    char tag_ruta_recursivo[4+4+4+10] = "confRuta";
+    char aux[3];
+    sprintf(aux, "%d",estructura_ruta->id_ruta);
+    strncat(tag_ruta_recursivo, aux, 3);
+    strncat(tag_ruta_recursivo, ".recursivo", 10);
+    
+	path_recursivo = config_lookup(cf, tag_ruta_recursivo);
+	recursivo = config_setting_get_bool(path_recursivo);
+
+    return recursivo;
+}
