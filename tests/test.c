@@ -107,6 +107,7 @@ void testDirectorioYConfiguracionNula(void)
     if (salida)
         ruta_tDestruir(salida);
 }
+
 void testDirectorioRutaValida(void)
 {
     char* directorio0 = "/tmp/test/";
@@ -123,6 +124,18 @@ void testDirectorioRutaValida(void)
     CU_ASSERT_STRING_EQUAL(salida1->ruta, directorio1);
     if (salida1)
         ruta_tDestruir(salida1);
+}
+
+void testDirectorioSubDirectorio(void)
+{
+    char* directorio0 = "/tmp/test/A/B/D/";
+    char* directorio1 = "/tmp/test/A/B/";
+
+    Ruta_t *salida0 = directorioAfectado(cf, directorio0);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(salida0);
+    CU_ASSERT_STRING_EQUAL( salida0->ruta, directorio1);
+    if (salida0)
+        ruta_tDestruir(salida0);
 }
 
 void testDirectorioRutaValidaConBarra(void)
@@ -417,6 +430,7 @@ int main(void)
            (NULL == CU_add_test(pSuite_directorio, "Test directorio ruta vacia", testDirectorioRutaVacia)) ||
            (NULL == CU_add_test(pSuite_directorio, "Test configuracion nula", testConfiguracionNula )) ||
            (NULL == CU_add_test(pSuite_directorio, "Test directorio y configuracion nulas ", testDirectorioYConfiguracionNula )) ||
+           (NULL == CU_add_test(pSuite_directorio, "Test subdirectorio valido", testDirectorioSubDirectorio )) ||
 
            (NULL == CU_add_test(pSuite_directorio, "Test ruta termina en barra valida", testRutaTerminaEnBarraValida)) ||
            (NULL == CU_add_test(pSuite_directorio, "Test ruta termina en barra valida Invertida", testRutaTerminaEnBarraValidaInvertida)) ||
