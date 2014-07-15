@@ -65,77 +65,6 @@ config_t* configuracion_cargar(const char *ruta)
     return cf;
 }
 bool habilitado(const char *pathname){
-	/*//Corre todas las comprobaciones necesarias para*/
-	/*//determinar si el usuario puede crear un directorio ( o eleminarlo)*/
-	
-	/*if (DEBUG){*/
-		/*puts("-HabilitadoAEscribir()\n");*/
-        /*LOG_PRINT("-HabilitadoAEscribir()");*/
-    /*}*/
-
-
-	/*int activo = 0;*/
-	/*config_t cfg, *cf;*/
-
-        /*//Inicializo el parser de configuracion*/
-        /*cf = &cfg;*/
-        /*config_init(cf);*/
-        
-	/*//Intento leer el archivo*/
-        /*if (!config_read_file(cf, RUTA_CONFIG )) {*/
-           /*puts("ERROR al parsear la configuracion\n");*/
-           /*if (DEBUG)*/
-               /*LOG_PRINT("ERROR al parsear la configuracion");*/
-           /*config_destroy(cf);*/
-           /*return false;*/
-        /*}*/
-
-	/*//Verifico que en la configuracion se quiere verificar los grupos*/
-	/*if(config_lookup_bool(cf, "Carpetas.activo", &activo)){*/
-		/*if (DEBUG){*/
-			/*printf("-Activo:%d\n",activo);*/
-            /*LOG_PRINT("-Activo: %d",activo);*/
-        /*}*/
-		/*if( activo == 0 ){*/
-			   /*config_destroy(cf);*/
-			   /*return true;*/
-		/*}//if*/
-		/*else{*/
-			/*[>if(directorioAfectado(cf, pathname)){<]*/
-			/*if(directorioAfectado(cf, pathname)){*/
-				/*//El directorio es afectado por la configuracion*/
-
-				/*if (DEBUG){*/
-					/*printf("-AFECTA AL DIRECTORIO\n");*/
-                    /*LOG_PRINT("-AFECTA AL DIRECTORIO");*/
-                /*}*/
-
-				/*if ( verificarGrupos(cf)){*/
-                        /*config_destroy(cf);*/
-					/*return true;*/
-				/*}*/
-				/*config_destroy(cf);*/
-				/*return false;*/
-					
-				
-
-				/*config_destroy(cf);*/
-			/*}//if*/
-			/*else{*/
-				/*if (DEBUG)*/
-				   /*printf("-NO AFECTA AL DIRECTORIO\n");*/
-                   /*LOG_PRINT("No afecta al directorio");*/
-				   /*config_destroy(cf);*/
-				   /*return true;*/
-			/*}//else*/
-
-		/*}//else*/
-	/*}//if*/
-	/*else{*/
-	/*//Esto es pasaria si no existe la opcion activo en la config*/
-	/*config_destroy(cf);*/
-	/*return true; */
-	/*}*/
     return false;
 
 }//habilitadoAEscribir
@@ -210,7 +139,7 @@ Ruta_t* directorioAfectado(config_t *cf, const char *directorio_verificar)
            const char* directorio_con_barra = rutasTerminaEnBarra( directorio_afectado, directorio_verificar);
 
 	       if(posicionSubString != NULL && posicionSubStringInverso == NULL){
-               //dir a verificar es un subdirectorio del directorio afectado
+               //dir afectado es subdir de verificar
                if ( directorio_con_barra != NULL){
                    //TODO: esto es re croto, refactoriza y hacelo bien chanta
                    strncpy(datos_ruta->ruta, directorio_con_barra, MAXDIRLEN);
@@ -229,12 +158,10 @@ Ruta_t* directorioAfectado(config_t *cf, const char *directorio_verificar)
                        strncpy(directorio_posible, directorio_afectado, MAXDIRLEN);
                    }
                    //else -> mantendra la ruta mas cercana
-               }else
-                   strncpy(directorio_posible, directorio_afectado, MAXDIRLEN);
-
+               }
 
            } else  if ( posicionSubString == NULL && posicionSubStringInverso != NULL ){
-               //dir afectado es un subdirectorio del directorio a verificar 
+               //dir  verificar es sub dir del afectado
                //entonces no hago nada
                if ( directorio_con_barra != NULL){
                    //TODO: esto es re croto, refactoriza y hacelo bien chanta
@@ -247,7 +174,8 @@ Ruta_t* directorioAfectado(config_t *cf, const char *directorio_verificar)
                        free(directorio_posible);
                    return datos_ruta;
                }
-               continue;
+               else
+                    strncpy(directorio_posible, directorio_afectado, MAXDIRLEN);
            }
            else if (posicionSubString == NULL && posicionSubStringInverso == NULL){
                //No hay ninguna coincidencia
