@@ -44,28 +44,87 @@
 
 
 
-config_t* configuracion_cargar(const char *ruta)
+bool configuracion_cargar(const char *ruta, config_t* cf)
 {
+    if (!ruta) 
+        return NULL;
+
      //Inicializo el parser de configuracion
-	config_t cfg, *cf;
-    cf = &cfg;
     config_init(cf);
         
 	//Intento leer el archivo
-    /*if (!config_read_file(cf, ruta_ )) {*/
-    //TODO: QUITAR ESTER HARCODEO ASQUEROSO
-    if (!config_read_file(cf, "/home/facu/scripts/C/mkdir_intercept/tests/config1.txt" )) {
-       puts("ERROR al parsear la configuracion\n");
-       if (DEBUG)
-           LOG_PRINT("ERROR al parsear la configuracion");
+    if (!config_read_file(cf, ruta )) {
+       if (DEBUG){
+           int linea = config_error_line(cf);
+           const char* fichero = config_error_file(cf);
+           const char* texto = config_error_text(cf);
+           LOG_PRINT("ERROR CONFIG: %s:%d %s.",fichero, linea, texto);
+       }
        config_destroy(cf);
-       return NULL;
+       return false;
     }
     
-    return cf;
-}
+    return true;
+}//configuracion_cargar
+
 bool habilitado(const char *pathname){
-    return false;
+
+    Ruta_t *directorio;
+    //configuracion
+    config_t cfg, *cf;
+    if( configuracion_cargar(RUTA_CONFIG, &cfg) == false) 
+        return false;
+
+    cf = &cfg;
+    //Obtengo la estructura del directorio
+    directorio = directorioAfectado(cf, pathname);
+    //Devolvio null, por que el directorio no esta afectado
+    if (!directorio)
+        return true;
+
+    //En este punto es un directorio o un subdirectorio.
+    
+    //Directiva este habilitada?
+    if (directivaHabilitada(cf, directorio) == false){
+        if (directorio)
+            ruta_tDestruir(directorio);
+
+        return true;
+        }
+
+    //subdirectorio?
+    if (esSubDirectorio(directorio)){
+        if ( directivaRecursiva(cf, directorio) ){
+            if (usuarioOGrupoInhabilitado(cf, directorio) ){
+                if (directorio)
+                    ruta_tDestruir(directorio);
+                return false;
+            }
+            
+            //Usuario o grupo habilitado
+            if (directorio)
+                ruta_tDestruir(directorio);
+            return true;
+
+        }
+        //No es recursivo, por tanto no esta afectado
+        if (directorio)
+            ruta_tDestruir(directorio);
+        return true;
+
+    }
+   //directorio
+
+    if (usuarioOGrupoInhabilitado(cf, directorio) ){
+        if (directorio)
+            ruta_tDestruir(directorio);
+        return false;
+    }
+    
+    //Usuario o grupo habilitado
+    if (directorio)
+        ruta_tDestruir(directorio);
+    return true;
 
 }//habilitadoAEscribir
 
@@ -84,6 +143,7 @@ Ruta_t* ruta_tInstanciar(void)
         free(datos_ruta);
         return NULL;
     }
+    datos_ruta->subdirectorio = false;
 
     return datos_ruta;
 }
@@ -172,6 +232,9 @@ Ruta_t* directorioAfectado(config_t *cf, const char *directorio_verificar)
 
                    if (directorio_posible)
                        free(directorio_posible);
+                   //Marco que es subdirectorio
+                   datos_ruta->subdirectorio = true;
+
                    return datos_ruta;
                }
                else
@@ -236,7 +299,17 @@ const char* rutasTerminaEnBarra(const char* rutaA, const char* rutaB)
 
 }
 
+/*
+ *Wrapper para las funciones de verificacion de grupos y usuarios
+ */
+bool usuarioOGrupoInhabilitado(config_t* cf, Ruta_t* estructura){
+    if (usuarioInhabilitado(cf, estructura))
+        return true;
+    if (grupoInhabilitado(cf, estructura))
+        return true;
+    return false;
 
+    }
 /*
  *Parsea la configuracion y obtiene los grupos
  *que estan inhabilitados para crear o eliminar directorios
@@ -374,4 +447,8 @@ bool directivaRecursiva(config_t* cf, Ruta_t* estructura_ruta)
 	recursivo = config_setting_get_bool(path_recursivo);
 
     return recursivo;
+}
+
+bool esSubDirectorio(Ruta_t* estructura){
+    return estructura->subdirectorio;
 }

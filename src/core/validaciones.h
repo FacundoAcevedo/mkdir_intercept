@@ -22,6 +22,7 @@ typedef struct ruta_t {
    int id_ruta;
    bool recursivo;
    bool activo;
+   bool subdirectorio;
    int grupos[MAXGRUPOS];
    int grupos_cantidad;
    int usuarios[MAXUSUARIOS];
@@ -30,9 +31,10 @@ typedef struct ruta_t {
 
 bool habilitado(const char*);
 
-config_t* configuracion_cargar(const char*);
+bool configuracion_cargar(const char*, config_t*);
 
 Ruta_t *directorioAfectado(config_t* , const char*);
+bool esSubDirectorio(Ruta_t* );
 
 Ruta_t* obtenerGruposInhabilitados(config_t*, Ruta_t*);
 bool grupoInhabilitado(config_t* , Ruta_t*);
@@ -40,8 +42,7 @@ bool grupoInhabilitado(config_t* , Ruta_t*);
 Ruta_t* obtenerUsuariosInhabilitados(config_t*, Ruta_t*);
 bool usuarioInhabilitado(config_t* , Ruta_t*);
 
-bool directivaHabilitada(config_t* , Ruta_t* );
-bool directivaRecursiva(config_t* , Ruta_t*);
+bool usuarioOGrupoInhabilitado(config_t*, Ruta_t*);
 
 bool directivaHabilitada(config_t*, Ruta_t*); 
 bool directivaRecursiva(config_t* , Ruta_t* );
