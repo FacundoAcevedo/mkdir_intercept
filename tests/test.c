@@ -89,7 +89,7 @@ void testDirectorioNulo(void)
         ruta_tDestruir(salida);
 }
 
-void testConfiguracionNula(void)
+void testDirectorioConfiguracionNula(void)
 {
 
     char* ruta = "/tmp/";
@@ -137,6 +137,18 @@ void testDirectorioSubDirectorio(void)
     CU_ASSERT_STRING_EQUAL( salida0->ruta, directorio1);
     if (salida0)
         ruta_tDestruir(salida0);
+}
+
+void testDirectorioNombreContinuado(void)
+{
+    char* directorio0 = "/tmp/test/A";
+    char* directorio1 = "/tmp/test/ABCD";
+
+    Ruta_t *salida1 = directorioAfectado(cf, directorio1);
+    CU_ASSERT_PTR_NOT_NULL_FATAL(salida1);
+    CU_ASSERT_STRING_NOT_EQUAL( salida1->ruta, directorio0);
+    if (salida1)
+        ruta_tDestruir(salida1);
 }
 
 void testDirectorioSubDirectorioLargo(void)
@@ -348,14 +360,6 @@ void testUsuarioHabilitado(void){
 }
 
 
-
-
-
-
-
-
-
-
 int init_parametros(void)
 {
 
@@ -413,12 +417,40 @@ void testParametrosRecursivoFalse(void){
         ruta_tDestruir(estructura_ruta);
 }
 
+void testConfiguracionNula(void){
+    config_t cfg;
+    char* rutaNula = NULL;
+    bool existe_configuracion = configuracion_cargar(rutaNula, &cfg);
+
+    CU_ASSERT_FALSE(existe_configuracion);
+
+
+
+
+}
+
+void testConfiguracionExistente(void){
+    char* rutaExistente = "tests/config1.txt";
+    
+    config_t cfg, *cf;
+    bool existe_configuracion = configuracion_cargar(rutaExistente, &cfg);
+
+    CU_ASSERT_TRUE(existe_configuracion);
+
+    cf = &cfg;
+
+    //Dirty hack :P
+    if (cf->root)
+        config_destroy(cf);
+}
+
 
 int main(void)
 {
    CU_pSuite pSuite_directorio = NULL;
    CU_pSuite pSuite_grupos_y_usuarios = NULL;
-   CU_pSuite pSuite_parametros= NULL;
+   CU_pSuite pSuite_parametros = NULL;
+   CU_pSuite pSuite_configuracion = NULL;
 
    /* initialize the CUnit test registry */
    if (CUE_SUCCESS != CU_initialize_registry())
@@ -427,7 +459,8 @@ int main(void)
    /* add a suite to the registry */
    pSuite_directorio = CU_add_suite("directorios", init_directorioAfectado, clean_directorioAfectado);
    pSuite_grupos_y_usuarios = CU_add_suite("grupos y usuarios", init_grupos, clean_grupos);
-   pSuite_parametros= CU_add_suite("parametros", init_parametros, clean_parametros);
+   pSuite_parametros = CU_add_suite("parametros", init_parametros, clean_parametros);
+   pSuite_configuracion = CU_add_suite("configuracion", NULL, NULL);
    if (NULL == pSuite_directorio) {
       CU_cleanup_registry();
       return CU_get_error();
@@ -442,6 +475,10 @@ int main(void)
       CU_cleanup_registry();
       return CU_get_error();
    }
+   if (NULL == pSuite_configuracion) {
+      CU_cleanup_registry();
+      return CU_get_error();
+   }
    /* add the tests to the suite */
 
    if ((NULL == CU_add_test(pSuite_directorio, "Test directorio fuera de ruta", testDirectorioFueraDeRutaAfectada))||
@@ -450,10 +487,11 @@ int main(void)
            (NULL == CU_add_test(pSuite_directorio, "Test directorio valido", testDirectorioRutaValida)) ||
            (NULL == CU_add_test(pSuite_directorio, "Test directorio valido con barra", testDirectorioRutaValidaConBarra)) ||
            (NULL == CU_add_test(pSuite_directorio, "Test directorio ruta vacia", testDirectorioRutaVacia)) ||
-           (NULL == CU_add_test(pSuite_directorio, "Test configuracion nula", testConfiguracionNula )) ||
+           (NULL == CU_add_test(pSuite_directorio, "Test directorio configuracion nula", testDirectorioConfiguracionNula )) ||
            (NULL == CU_add_test(pSuite_directorio, "Test directorio y configuracion nulas ", testDirectorioYConfiguracionNula )) ||
            (NULL == CU_add_test(pSuite_directorio, "Test subdirectorio", testDirectorioSubDirectorio )) ||
            (NULL == CU_add_test(pSuite_directorio, "Test subdirectorio largo", testDirectorioSubDirectorioLargo)) ||
+           (NULL == CU_add_test(pSuite_directorio, "Test directorio nombre continuado", testDirectorioNombreContinuado)) ||
 
            (NULL == CU_add_test(pSuite_directorio, "Test ruta termina en barra valida", testRutaTerminaEnBarraValida)) ||
            (NULL == CU_add_test(pSuite_directorio, "Test ruta termina en barra valida Invertida", testRutaTerminaEnBarraValidaInvertida)) ||
@@ -480,6 +518,12 @@ int main(void)
       (NULL == CU_add_test(pSuite_parametros, "Test parametros activo false", testParametrosActivoFalse)) ||
       (NULL == CU_add_test(pSuite_parametros, "Test parametros recursivo true", testParametrosRecursivoTrue)) ||
       (NULL == CU_add_test(pSuite_parametros, "Test parametros recursivo false", testParametrosRecursivoFalse)))
+   {
+      CU_cleanup_registry();
+      return CU_get_error();
+   }
+   if ((NULL == CU_add_test(pSuite_configuracion, "Test configuracion nula", testConfiguracionNula)) ||
+      (NULL == CU_add_test(pSuite_configuracion, "Test configuracion existente", testConfiguracionExistente)))
    {
       CU_cleanup_registry();
       return CU_get_error();
