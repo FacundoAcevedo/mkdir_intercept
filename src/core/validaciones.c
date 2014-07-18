@@ -43,11 +43,14 @@
 #include "../logger/logger.h"
 
 
+int ficheroExiste(const char *filename) {  
+        return !access(filename, F_OK);  
+}  
 
 bool configuracion_cargar(const char *ruta, config_t* cf)
 {
-    if (!ruta) 
-        return NULL;
+    if ( !ruta || !ficheroExiste(ruta) ) 
+        return false;
 
      //Inicializo el parser de configuracion
     config_init(cf);
@@ -67,20 +70,28 @@ bool configuracion_cargar(const char *ruta, config_t* cf)
     return true;
 }//configuracion_cargar
 
-bool habilitado(const char *pathname){
+bool habilitado(const char *pathname, char* rutaConfig){
+
+    if (!pathname)
+        return false;
 
     Ruta_t *directorio;
     //configuracion
+    if ( !rutaConfig || strlen(rutaConfig) == 0)
+        rutaConfig = RUTA_CONFIG;
+
     config_t cfg, *cf;
-    if( configuracion_cargar(RUTA_CONFIG, &cfg) == false) 
+    if( configuracion_cargar(rutaConfig, &cfg) == false) 
         return false;
 
     cf = &cfg;
     //Obtengo la estructura del directorio
     directorio = directorioAfectado(cf, pathname);
     //Devolvio null, por que el directorio no esta afectado
-    if (!directorio)
+    if (!directorio){
+        config_destroy(cf);
         return true;
+    }
 
     //En este punto es un directorio o un subdirectorio.
     
@@ -89,6 +100,7 @@ bool habilitado(const char *pathname){
         if (directorio)
             ruta_tDestruir(directorio);
 
+        config_destroy(cf);
         return true;
         }
 
@@ -98,18 +110,21 @@ bool habilitado(const char *pathname){
             if (usuarioOGrupoInhabilitado(cf, directorio) ){
                 if (directorio)
                     ruta_tDestruir(directorio);
+                config_destroy(cf);
                 return false;
             }
             
             //Usuario o grupo habilitado
             if (directorio)
                 ruta_tDestruir(directorio);
+            config_destroy(cf);
             return true;
 
         }
         //No es recursivo, por tanto no esta afectado
         if (directorio)
             ruta_tDestruir(directorio);
+        config_destroy(cf);
         return true;
 
     }
@@ -118,12 +133,14 @@ bool habilitado(const char *pathname){
     if (usuarioOGrupoInhabilitado(cf, directorio) ){
         if (directorio)
             ruta_tDestruir(directorio);
+        config_destroy(cf);
         return false;
     }
     
     //Usuario o grupo habilitado
     if (directorio)
         ruta_tDestruir(directorio);
+    config_destroy(cf);
     return true;
 
 }//habilitadoAEscribir

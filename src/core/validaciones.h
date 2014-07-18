@@ -29,9 +29,10 @@ typedef struct ruta_t {
    int usuarios_cantidad;
    } Ruta_t;
 
-bool habilitado(const char*);
+bool habilitado(const char*, char*);
 
 bool configuracion_cargar(const char*, config_t*);
+int ficheroExiste(const char* );
 
 Ruta_t *directorioAfectado(config_t* , const char*);
 bool esSubDirectorio(Ruta_t* );
