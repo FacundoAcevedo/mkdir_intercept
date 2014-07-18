@@ -445,12 +445,37 @@ void testConfiguracionExistente(void){
 }
 
 
+void testIntegracionPathnameNulo(void){
+    char* pathname = NULL;
+    char* rutaConfig= "tests/config1.txt";
+    bool habilitacion = habilitado( pathname, rutaConfig);
+    
+    CU_ASSERT_FALSE(habilitacion);
+}
+
+void testIntegracionConfiguracionNula(void){
+    char* pathname = "/tmp/ajsdhkjash";
+    char* rutaConfig = NULL;
+    bool habilitacion = habilitado( pathname, rutaConfig);
+    
+    CU_ASSERT_FALSE(habilitacion);
+}
+
+void testIntegracionValido(void){
+    char* pathname = "/tmp/tests/";
+    char* rutaConfig= "tests/config1.txt";
+    bool habilitacion = habilitado( pathname, rutaConfig);
+    
+    CU_ASSERT_TRUE(habilitacion);
+}
+
 int main(void)
 {
    CU_pSuite pSuite_directorio = NULL;
    CU_pSuite pSuite_grupos_y_usuarios = NULL;
    CU_pSuite pSuite_parametros = NULL;
    CU_pSuite pSuite_configuracion = NULL;
+   CU_pSuite pSuite_integracion = NULL;
 
    /* initialize the CUnit test registry */
    if (CUE_SUCCESS != CU_initialize_registry())
@@ -461,6 +486,7 @@ int main(void)
    pSuite_grupos_y_usuarios = CU_add_suite("grupos y usuarios", init_grupos, clean_grupos);
    pSuite_parametros = CU_add_suite("parametros", init_parametros, clean_parametros);
    pSuite_configuracion = CU_add_suite("configuracion", NULL, NULL);
+   pSuite_integracion= CU_add_suite("integracion", NULL, NULL);
    if (NULL == pSuite_directorio) {
       CU_cleanup_registry();
       return CU_get_error();
@@ -476,6 +502,10 @@ int main(void)
       return CU_get_error();
    }
    if (NULL == pSuite_configuracion) {
+      CU_cleanup_registry();
+      return CU_get_error();
+   }
+   if (NULL == pSuite_integracion) {
       CU_cleanup_registry();
       return CU_get_error();
    }
@@ -524,6 +554,14 @@ int main(void)
    }
    if ((NULL == CU_add_test(pSuite_configuracion, "Test configuracion nula", testConfiguracionNula)) ||
       (NULL == CU_add_test(pSuite_configuracion, "Test configuracion existente", testConfiguracionExistente)))
+   {
+      CU_cleanup_registry();
+      return CU_get_error();
+   }
+
+   if ((NULL == CU_add_test(pSuite_integracion, "Test integracion directorio nulo", testIntegracionPathnameNulo)) ||
+      (NULL == CU_add_test(pSuite_integracion, "Test integracion configuracion nula", testIntegracionConfiguracionNula)) ||
+      (NULL == CU_add_test(pSuite_integracion, "Test integracion valido", testIntegracionValido)))
    {
       CU_cleanup_registry();
       return CU_get_error();
